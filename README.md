@@ -26,17 +26,25 @@ console.log(token)
 
 ---
 
+## Repository layout
+
+This repository is a private Bun workspace: the root package is never published. Published
+packages live in `packages/`, private apps live in `apps/`.
+
+- [`packages/core`](./packages/core): `@trajectonomics/design-system`, the pure token core.
+
 ## Development
 
 ```bash
-# Install dependencies
+# Install dependencies for every workspace package
 bun install
 
-# Run full verification suite (lint, typecheck, tests, build)
+# Run the full verification suite for every workspace package
+# (lint, typecheck, tests, build, package lint)
 bun run check
 
-# Run tests
-bun test
+# Run only the tests
+bun run test
 
 # Code formatting & lint
 bun run format

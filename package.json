@@ -1,50 +1,24 @@
 {
-	"name": "@trajectonomics/design-system",
-	"version": "0.0.0-development",
-	"description": "Trajectonomics design system: tokens, themes, and UI primitives",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/trajectonomics/design-system.git"
-	},
+	"name": "@trajectonomics/design-system-workspace",
+	"private": true,
+	"description": "Workspace root for the Trajectonomics design system packages. Never published.",
 	"type": "module",
-	"sideEffects": false,
 	"packageManager": "bun@1.4.4",
 	"engines": {
 		"node": ">=20.0.0"
 	},
-	"main": "./dist/index.cjs",
-	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.cts",
-	"exports": {
-		".": {
-			"import": {
-				"types": "./dist/index.d.mts",
-				"default": "./dist/index.mjs"
-			},
-			"require": {
-				"types": "./dist/index.d.cts",
-				"default": "./dist/index.cjs"
-			}
-		},
-		"./package.json": "./package.json"
-	},
-	"files": [
-		"dist"
+	"workspaces": [
+		"packages/*",
+		"apps/*"
 	],
-	"publishConfig": {
-		"access": "public",
-		"provenance": true,
-		"tag": "latest"
-	},
 	"scripts": {
-		"build": "tsdown",
-		"test": "bun test",
-		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
-		"lint": "biome ci --error-on-warnings .",
+		"lint": "biome ci --error-on-warnings . && bun run --filter '*' lint",
 		"format": "biome check --write .",
+		"typecheck": "tsc -p tsconfig.json && bun run --filter '*' typecheck",
+		"test": "bun test scripts && bun run --filter '*' test",
+		"build": "bun run --filter '*' build",
+		"lint:package": "bun run --filter '*' lint:package",
 		"check": "bun run lint && bun run typecheck && bun run test && bun run build && bun run lint:package",
-		"lint:package": "publint --strict && attw --pack . --profile node16",
 		"skills:check": "bunx skills@latest check",
 		"skills:update": "bunx skills@latest update"
 	},
