@@ -11,7 +11,7 @@ A named, platform-agnostic design decision (color, spacing, typography, etc.) wi
 A raw, context-free Design Token value such as a specific color or size. Primitive Tokens never reference another token.
 
 ### Semantic Token
-A Design Token named by purpose (for example `color.text.primary`) that aliases a Primitive Token.
+A Design Token named by purpose (for example `color.primary`) that aliases a Primitive Token. Its name is a role in the Semantic Token Contract.
 
 ### Theme
 A named set of values that resolves every Semantic Token for a given context (for example `light` or `dark`). Themes form one flat list: no Theme is special, and `light` and `dark` are ordinary Themes.

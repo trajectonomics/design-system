@@ -1,22 +1,45 @@
 import { describe, expect, it } from "bun:test"
-import { createDesignToken, DomainError, DomainErrorCode } from "./index"
+import { primitiveTokens, semanticTokenContract, themes } from "./index"
 
-describe("createDesignToken", () => {
-	it("creates a frozen Design Token with trimmed name and value", () => {
-		const token = createDesignToken({ name: " color.blue.500 ", value: " #3b82f6 " })
-		expect(token.name).toBe("color.blue.500")
-		expect(token.value).toBe("#3b82f6")
-		expect(Object.isFrozen(token)).toBe(true)
+describe("built-in Primitive Tokens", () => {
+	it("are frozen literal tokens that never reference another token", () => {
+		const tokens = Object.values(primitiveTokens)
+		const names = new Set(tokens.map((token) => token.name))
+		expect(tokens.length).toBeGreaterThan(0)
+		for (const token of tokens) {
+			expect(Object.isFrozen(token)).toBe(true)
+			expect(token.value.startsWith("#")).toBe(true)
+			expect(names.has(token.value)).toBe(false)
+		}
 	})
 
-	it("rejects a blank name with INVALID_TOKEN_NAME on field name", () => {
-		try {
-			createDesignToken({ name: "   ", value: "#000" })
-			throw new Error("expected createDesignToken to throw")
-		} catch (err) {
-			expect(err).toBeInstanceOf(DomainError)
-			expect((err as DomainError).code).toBe(DomainErrorCode.INVALID_TOKEN_NAME)
-			expect((err as DomainError).field).toBe("name")
+	it("are frozen as one palette", () => {
+		expect(Object.isFrozen(primitiveTokens)).toBe(true)
+	})
+})
+
+describe("built-in Themes", () => {
+	it("resolves every role in the Contract in every built-in Theme", () => {
+		const roleNames = semanticTokenContract.roles.map((role) => role.name)
+		for (const theme of themes) {
+			expect(Object.keys(theme.tokens).sort()).toEqual([...roleNames].sort())
+		}
+	})
+
+	it("resolves every role to a literal colour", () => {
+		for (const theme of themes) {
+			for (const value of Object.values(theme.tokens)) {
+				expect(value).toMatch(/^#[0-9a-f]{6}$/i)
+			}
+		}
+	})
+
+	it("treats light and dark as ordinary frozen Themes", () => {
+		expect(themes.map((theme) => theme.name)).toEqual(["light", "dark"])
+		for (const theme of themes) {
+			expect(Object.isFrozen(theme)).toBe(true)
+			expect(Object.isFrozen(theme.tokens)).toBe(true)
+			expect(theme.contractVersion).toBe(semanticTokenContract.version)
 		}
 	})
 })
