@@ -32,5 +32,5 @@ Decisions behind the API live in `docs/adr/`; vocabulary lives in `GLOSSARY.md`.
 
 ## Files
 
-- One concern per file. The 100-line ceiling (200 for test files) is enforced by Biome. Split files as soon as multiple concerns arise.
+- One concern per file. The 250-line ceiling is enforced by Biome. Split files as soon as multiple concerns arise.
 - `index.ts` remains a clean re-export list defining the package's public surface.
