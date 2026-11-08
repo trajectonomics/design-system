@@ -5,6 +5,9 @@
 /** Version part to increment. */
 export type Bump = "major" | "minor" | "patch"
 
+/** A requested bump: auto reads the commits, otherwise the caller decides. */
+export type BumpRequest = Bump | "auto"
+
 /** Release channel: alpha for every merge, stable for a manual release. */
 export type Channel = "alpha" | "stable"
 
@@ -34,7 +37,11 @@ export function bumpFromCommits(messages: readonly string[]): Bump {
 export function parseStable(version: string): StableParts | null {
 	const match = STABLE.exec(version)
 	if (match === null) return null
-	return { major: Number(match[1]), minor: Number(match[2]), patch: Number(match[3]) }
+	return Object.freeze({
+		major: Number(match[1]),
+		minor: Number(match[2]),
+		patch: Number(match[3]),
+	})
 }
 
 /**

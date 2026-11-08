@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Stable releases must run on main
-        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && inputs.dry-run == false
         run: |
           echo "::error::Run the stable release from main, not $GITHUB_REF."
           exit 1
@@ -88,13 +88,13 @@ jobs:
           TAG_PREFIX: ${{ inputs.tag-prefix }}
           DRY_RUN: ${{ inputs.dry-run }}
         run: |
-          ARGS=(--channel "$CHANNEL" --bump "$BUMP" --package "$PACKAGE_DIR" --tag-prefix "$TAG_PREFIX" --json)
+          ARGS=(--channel "$CHANNEL" --bump "$BUMP" --package-dir "$PACKAGE_DIR" --tag-prefix "$TAG_PREFIX" --json)
           if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
           PLAN=$(bun scripts/version.ts "${ARGS[@]}")
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
           if [ "$PLAN" = "null" ]; then
             echo "Nothing to release: no commits touched $PACKAGE_DIR since its last stable tag."
-            echo "version=none" >> "$GITHUB_OUTPUT"
+            echo "version=" >> "$GITHUB_OUTPUT"
           else
             VERSION=$(echo "$PLAN" | jq -r .version)
             TAG=$(echo "$PLAN" | jq -r '.tag // ""')
@@ -109,13 +109,18 @@ jobs:
 
       - name: Report dry run
         if: inputs.dry-run
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          CHANNEL: ${{ steps.version.outputs.channel }}
+          PACKAGE_DIR: ${{ inputs.package-dir }}
         run: |
-          if [ "${{ steps.version.outputs.version }}" = "none" ]; then
-            echo "Dry run: nothing to publish; no commit touched ${{ inputs.package-dir }}."
-          elif [ -n "${{ steps.version.outputs.tag }}" ]; then
-            echo "Dry run: would publish ${{ inputs.package-dir }} as ${{ steps.version.outputs.tag }}."
+          if [ -z "$VERSION" ]; then
+            echo "Dry run: nothing to publish; no commit touched $PACKAGE_DIR."
+          elif [ -n "$TAG" ]; then
+            echo "Dry run: would publish $PACKAGE_DIR as $TAG."
           else
-            echo "Dry run: would publish ${{ inputs.package-dir }} version ${{ steps.version.outputs.version }} (${{ steps.version.outputs.channel }})."
+            echo "Dry run: would publish $PACKAGE_DIR version $VERSION ($CHANNEL)."
           fi
 
       - name: Apply version

@@ -4,6 +4,14 @@ import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 
 const VERSION_SCRIPT = resolve(import.meta.dir, "version.ts")
+const CORE_ARGS = [
+	"--package-dir",
+	"packages/core",
+	"--tag-prefix",
+	"core-v",
+	"--channel",
+	"stable",
+]
 const repos: string[] = []
 
 function git(cwd: string, ...args: string[]): string {
@@ -58,9 +66,8 @@ describe("version for one workspace package", () => {
 		commit(cwd, "feat(theme): add theme data", "packages/theme/src/index.ts")
 		commit(cwd, "fix(core): guard token name", "packages/core/src/index.ts")
 
-		const args = ["--package", "packages/core", "--tag-prefix", "core-v", "--channel", "stable"]
-		expect(version(cwd, ...args)).toBe("0.1.1")
-		expect(JSON.parse(version(cwd, ...args, "--json"))).toMatchObject({
+		expect(version(cwd, ...CORE_ARGS)).toBe("0.1.1")
+		expect(JSON.parse(version(cwd, ...CORE_ARGS, "--json"))).toMatchObject({
 			version: "0.1.1",
 			tag: "core-v0.1.1",
 		})
@@ -73,8 +80,7 @@ describe("version for one workspace package", () => {
 		git(cwd, "tag", "theme-v2.0.0")
 		commit(cwd, "feat(core): add tokens", "packages/core/src/index.ts")
 
-		const args = ["--package", "packages/core", "--tag-prefix", "core-v", "--channel", "stable"]
-		expect(version(cwd, ...args)).toBe("0.1.0")
+		expect(version(cwd, ...CORE_ARGS)).toBe("0.1.0")
 	})
 
 	it("reports nothing to release in a dry run when the folder is unchanged", () => {
@@ -84,8 +90,38 @@ describe("version for one workspace package", () => {
 		git(cwd, "tag", "core-v0.1.0")
 		commit(cwd, "docs: describe the package", "README.md")
 
-		const args = ["--package", "packages/core", "--tag-prefix", "core-v", "--channel", "stable"]
-		expect(version(cwd, ...args, "--dry-run")).toBe("none")
-		expect(() => version(cwd, ...args)).toThrow("Nothing to release")
+		expect(version(cwd, ...CORE_ARGS, "--dry-run")).toBe("none")
+		expect(() => version(cwd, ...CORE_ARGS)).toThrow("Nothing to release")
+	})
+})
+
+describe("version argument rules", () => {
+	it("requires a channel of alpha or stable", () => {
+		expect(() =>
+			version(
+				repoWithFiles([]),
+				"--package-dir",
+				"packages/core",
+				"--tag-prefix",
+				"core-v",
+				"--channel",
+				"beta",
+			),
+		).toThrow("--channel must be alpha or stable")
+	})
+
+	it("requires a bump of auto, major, minor or patch", () => {
+		expect(() => version(repoWithFiles([]), ...CORE_ARGS, "--bump", "huge")).toThrow(
+			"--bump must be auto, major, minor or patch",
+		)
+	})
+
+	it("requires a package folder and a tag prefix", () => {
+		expect(() =>
+			version(repoWithFiles([]), "--tag-prefix", "core-v", "--channel", "stable"),
+		).toThrow("--package-dir is required")
+		expect(() =>
+			version(repoWithFiles([]), "--package-dir", "packages/core", "--channel", "stable"),
+		).toThrow("--tag-prefix is required")
 	})
 })

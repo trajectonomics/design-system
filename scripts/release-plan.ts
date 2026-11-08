@@ -4,6 +4,7 @@
 
 import {
 	type Bump,
+	type BumpRequest,
 	bumpFromCommits,
 	type Channel,
 	nextAlpha,
@@ -12,12 +13,18 @@ import {
 	type StableParts,
 } from "./semver"
 
+/** The tag and version of a package's last stable release. */
+export interface StableRelease {
+	readonly tag: string
+	readonly version: string
+}
+
 /** Everything the planner needs to know, already scoped to one package. */
 export interface ReleaseRequest {
 	readonly channel: Channel
-	readonly bump: Bump | "auto"
+	readonly bump: BumpRequest
 	readonly tagPrefix: string
-	readonly lastTag: string | null
+	readonly lastRelease: StableRelease | null
 	readonly commits: readonly string[]
 	readonly published: readonly string[]
 }
@@ -25,22 +32,24 @@ export interface ReleaseRequest {
 /** The version to publish and, for a stable release, the tag to create. */
 export interface ReleasePlan {
 	readonly channel: Channel
+	/** The bump the commits ask for; `version` applies the 0.x major-to-minor rule. */
 	readonly bump: Bump
 	readonly lastTag: string | null
 	readonly version: string
 	readonly tag: string | null
 }
 
-/** Highest stable tag carrying `tagPrefix`; prereleases and other packages are ignored. */
-export function lastStableTag(tags: readonly string[], tagPrefix: string): string | null {
-	let last: string | null = null
+/** Highest stable release carrying `tagPrefix`; prereleases and other packages are ignored. */
+export function lastStableTag(tags: readonly string[], tagPrefix: string): StableRelease | null {
+	let last: StableRelease | null = null
 	let lastParts: StableParts | null = null
 	for (const tag of tags) {
 		if (!tag.startsWith(tagPrefix)) continue
-		const parts = parseStable(tag.slice(tagPrefix.length))
+		const version = tag.slice(tagPrefix.length)
+		const parts = parseStable(version)
 		if (parts === null) continue
 		if (lastParts === null || compareParts(parts, lastParts) > 0) {
-			last = tag
+			last = Object.freeze({ tag, version })
 			lastParts = parts
 		}
 	}
@@ -51,26 +60,21 @@ function compareParts(a: StableParts, b: StableParts): number {
 	return a.major - b.major || a.minor - b.minor || a.patch - b.patch
 }
 
-/** The git tag for a stable release of one package, e.g. core-v1.2.3. */
-export function releaseTag(tagPrefix: string, version: string): string {
-	return `${tagPrefix}${version}`
-}
-
 /**
- * Version for one package, or null when no commit touched it since `lastTag`.
- * Alphas count up from what is published; a stable release produces its tag.
+ * Version for one package, or null when no commit touched it since
+ * `lastRelease`. Alphas count up from what is published; a stable release
+ * produces its tag.
  */
 export function planRelease(request: ReleaseRequest): ReleasePlan | null {
 	if (request.commits.length === 0) return null
-	const lastVersion =
-		request.lastTag === null ? null : request.lastTag.slice(request.tagPrefix.length)
 	const explicit = request.bump !== "auto"
 	const bump = explicit ? request.bump : bumpFromCommits(request.commits)
-	const base = nextStable(lastVersion, bump, explicit)
+	const base = nextStable(request.lastRelease?.version ?? null, bump, explicit)
+	const lastTag = request.lastRelease?.tag ?? null
 	if (request.channel === "stable") {
-		const tag = releaseTag(request.tagPrefix, base)
-		return { channel: "stable", bump, lastTag: request.lastTag, version: base, tag }
+		const tag = `${request.tagPrefix}${base}`
+		return Object.freeze({ channel: "stable", bump, lastTag, version: base, tag })
 	}
 	const version = nextAlpha(base, request.published)
-	return { channel: "alpha", bump, lastTag: request.lastTag, version, tag: null }
+	return Object.freeze({ channel: "alpha", bump, lastTag, version, tag: null })
 }

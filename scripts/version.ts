@@ -1,18 +1,21 @@
-// Per-package release version calculator
 /**
- * Computes the version a package's Release workflow publishes. Nobody edits
+ * Computes the version a package's release workflow publishes. Nobody edits
  * package.json "version" by hand: stable versions come from per-package git
  * tags (<prefix>X.Y.Z), the bump comes from conventional commits that touched
  * the package folder since that tag, and alphas count up from what is already
  * on npm.
  *
- *   bun scripts/version.ts --package packages/core --tag-prefix core-v --channel alpha
- *   bun scripts/version.ts --package packages/core --tag-prefix core-v --channel stable --bump major
+ *   bun scripts/version.ts --package-dir packages/core --tag-prefix core-v --channel alpha
+ *   bun scripts/version.ts --package-dir packages/core --tag-prefix core-v --channel stable --bump major
  */
 import { parseArgs } from "node:util"
 import { $ } from "bun"
 import { lastStableTag, planRelease } from "./release-plan"
-import type { Bump } from "./semver"
+import type { BumpRequest, Channel } from "./semver"
+
+interface PackageManifest {
+	readonly name: string
+}
 
 async function gitTags(): Promise<string[]> {
 	return (await $`git tag --list`.text()).split("\n").filter(Boolean)
@@ -42,9 +45,19 @@ function required(value: string | undefined, flag: string): string {
 	return value
 }
 
-function parseBump(value: string | undefined): Bump | "auto" {
+function parseChannel(value: string | undefined): Channel {
+	if (value === "alpha" || value === "stable") return value
+	throw new Error("--channel must be alpha or stable")
+}
+
+function parseBump(value: string | undefined): BumpRequest {
 	if (value === "auto" || value === "major" || value === "minor" || value === "patch") return value
 	throw new Error("--bump must be auto, major, minor or patch")
+}
+
+function isPackageManifest(value: unknown): value is PackageManifest {
+	if (typeof value !== "object" || value === null || !("name" in value)) return false
+	return typeof value.name === "string"
 }
 
 async function main(): Promise<void> {
@@ -53,29 +66,30 @@ async function main(): Promise<void> {
 		options: {
 			channel: { type: "string" },
 			bump: { type: "string", default: "auto" },
-			package: { type: "string" },
+			"package-dir": { type: "string" },
 			"tag-prefix": { type: "string" },
 			"dry-run": { type: "boolean", default: false },
 			json: { type: "boolean", default: false },
 		},
 		strict: true,
 	})
-	const channel = values.channel
-	if (channel !== "alpha" && channel !== "stable")
-		throw new Error("--channel must be alpha or stable")
+	const channel = parseChannel(values.channel)
 	const bump = parseBump(values.bump)
-	const packageDir = required(values.package, "--package").replace(/\/+$/, "")
+	const packageDir = required(values["package-dir"], "--package-dir").replace(/\/+$/, "")
 	const tagPrefix = required(values["tag-prefix"], "--tag-prefix")
 
-	const lastTag = lastStableTag(await gitTags(), tagPrefix)
-	const commits = await commitsTouching(lastTag, packageDir)
-	const pkg = (await Bun.file(`${packageDir}/package.json`).json()) as { name: string }
-	const published = channel === "alpha" ? await publishedVersions(pkg.name) : []
-	const plan = planRelease({ channel, bump, tagPrefix, lastTag, commits, published })
+	const lastRelease = lastStableTag(await gitTags(), tagPrefix)
+	const commits = await commitsTouching(lastRelease?.tag ?? null, packageDir)
+	const manifest: unknown = await Bun.file(`${packageDir}/package.json`).json()
+	if (!isPackageManifest(manifest)) {
+		throw new Error(`${packageDir}/package.json does not declare a package name`)
+	}
+	const published = channel === "alpha" ? await publishedVersions(manifest.name) : []
+	const plan = planRelease({ channel, bump, tagPrefix, lastRelease, commits, published })
 	if (plan === null) {
 		if (!values["dry-run"]) {
 			throw new Error(
-				`Nothing to release: no commits touched ${packageDir} since ${lastTag ?? "the first commit"}`,
+				`Nothing to release: no commits touched ${packageDir} since ${lastRelease?.tag ?? "the first commit"}`,
 			)
 		}
 		console.log(values.json ? "null" : "none")

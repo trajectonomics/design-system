@@ -1,13 +1,13 @@
 # Publishing @trajectonomics/design-system
 
-Merges to `main` publish alphas; a stable release is the manual **Release** workflow for that package.
+Merges to `main` publish alphas; a stable release is the manual **Release core** workflow.
 Never run `npm publish` locally (see AGENTS.md), except the one-time first publish below.
 
 Each published package has its own caller of the reusable `.github/workflows/release-package.yml`:
 
-| Package                         | Folder          | Workflow           | Tag prefix | Trusted Publisher entry                  |
-| ------------------------------- | --------------- | ------------------ | ---------- | ---------------------------------------- |
-| `@trajectonomics/design-system` | `packages/core` | `release-core.yml` | `core-v`   | repository + workflow `release-core.yml` |
+| Package                         | Folder          | Workflow           | Tag prefix |
+| ------------------------------- | --------------- | ------------------ | ---------- |
+| `@trajectonomics/design-system` | `packages/core` | `release-core.yml` | `core-v`   |
 
 - A caller triggers only on changes under its own package folder, so a change to one package never
   publishes another.
@@ -37,7 +37,7 @@ documented special case. See ADR 0002.
    pipeline would publish, bump the working tree only (never commit it), publish under the `alpha`
    tag without provenance (it needs CI), approve the 2FA URL npm prints, then discard the bump:
    ```bash
-   VERSION=$(bun scripts/version.ts --package packages/core --tag-prefix core-v --channel alpha)
+   VERSION=$(bun scripts/version.ts --package-dir packages/core --tag-prefix core-v --channel alpha)
    cd packages/core
    npm version "$VERSION" --no-git-tag-version
    npm publish --access public --tag alpha --provenance=false
