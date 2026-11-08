@@ -36,6 +36,33 @@ console.log(darkTheme.tokens["color.primary"]) // "#e5e5e5"
 console.log(primitiveTokens.neutral900.value) // "#171717"
 ```
 
+## Theme CSS
+
+The theme package ships prebuilt CSS for the built-in Themes. Import one or both and select the
+active Theme with a `data-theme` attribute, which can sit on any element:
+
+```css
+@import "@trajectonomics/design-system-theme/themes/light.css";
+@import "@trajectonomics/design-system-theme/themes/dark.css";
+```
+
+```html
+<html data-theme="light">
+  <!-- nested elements can use another Theme -->
+  <section data-theme="dark">...</section>
+</html>
+```
+
+Any valid Theme, including a custom one, produces the same `--ds-` custom properties through one
+deterministic function:
+
+```typescript
+import { defineTheme, themeToCss } from "@trajectonomics/design-system-theme"
+
+const theme = defineTheme({ name: "brand-ocean", tokens: { /* every Contract role */ } })
+const css = themeToCss(theme) // [data-theme="brand-ocean"] { --ds-color-primary: ...; }
+```
+
 ---
 
 ## Repository layout
@@ -44,6 +71,8 @@ This repository is a private Bun workspace: the root package is never published.
 packages live in `packages/`, private apps live in `apps/`.
 
 - [`packages/core`](./packages/core): `@trajectonomics/design-system`, the pure token core.
+- [`packages/theme`](./packages/theme): `@trajectonomics/design-system-theme`, Theme validation and
+  Theme-to-CSS emission, plus prebuilt `light` and `dark` CSS.
 
 ## Development
 

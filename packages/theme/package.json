@@ -1,7 +1,7 @@
 {
 	"name": "@trajectonomics/design-system-theme",
 	"version": "0.0.0-development",
-	"description": "Trajectonomics design system: Theme definition and validation",
+	"description": "Trajectonomics design system: Theme definition, validation and CSS emission",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -27,6 +27,8 @@
 				"default": "./dist/index.cjs"
 			}
 		},
+		"./themes/light.css": "./dist/themes/light.css",
+		"./themes/dark.css": "./dist/themes/dark.css",
 		"./package.json": "./package.json"
 	},
 	"files": [
@@ -38,11 +40,12 @@
 		"tag": "latest"
 	},
 	"scripts": {
-		"build": "tsdown",
+		"build": "tsdown && bun run build:css",
+		"build:css": "bun run scripts/build-theme-css.ts",
 		"test": "bun test",
-		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json && tsc -p tsconfig.scripts.json",
 		"lint": "biome ci --error-on-warnings .",
-		"lint:package": "publint --strict && attw --pack . --profile node16"
+		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./themes/light.css ./themes/dark.css"
 	},
 	"peerDependencies": {
 		"@trajectonomics/design-system": "^0.1.0"
