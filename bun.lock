@@ -21,6 +21,18 @@
         "typescript": "^7.0.2",
       },
     },
+    "packages/theme": {
+      "name": "@trajectonomics/design-system-theme",
+      "version": "0.0.0-development",
+      "devDependencies": {
+        "@trajectonomics/design-system": "workspace:*",
+        "@types/bun": "^1.4.4",
+        "typescript": "^7.0.2",
+      },
+      "peerDependencies": {
+        "@trajectonomics/design-system": "^0.1.0",
+      },
+    },
   },
   "packages": {
     "@andrewbranch/untar.js": ["@andrewbranch/untar.js@1.0.4", "", {}, "sha512-pVXSwPsLuw8IGLo2Di0EaOfsk+ntVvpkk942J/sHYIkwvtKUakEcPh7HBgZ6tuimgzKSEHgCvO4XgQ05DEbwDw=="],
@@ -98,6 +110,8 @@
     "@sindresorhus/is": ["@sindresorhus/is@4.6.0", "", {}, "sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw=="],
 
     "@trajectonomics/design-system": ["@trajectonomics/design-system@workspace:packages/core"],
+
+    "@trajectonomics/design-system-theme": ["@trajectonomics/design-system-theme@workspace:packages/theme"],
 
     "@types/bun": ["@types/bun@1.4.4", "", { "dependencies": { "bun-types": "1.4.4" } }, "sha512-9wkRDXUXK124pEnAutE6n/l18j+i9GC5IAHK8TmX/2nlySETmky0OU6yL5U8pW1AoKh++AN9auDCr647BfurjQ=="],
 
