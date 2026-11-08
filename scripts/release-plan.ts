@@ -7,6 +7,7 @@ import {
 	type BumpRequest,
 	bumpFromCommits,
 	type Channel,
+	compareStable,
 	nextAlpha,
 	nextStable,
 	parseStable,
@@ -31,16 +32,17 @@ export interface ReleaseRequest {
 
 /** The version to publish and, for a stable release, the tag to create. */
 export interface ReleasePlan {
-	readonly channel: Channel
 	/** The bump the commits ask for; `version` applies the 0.x major-to-minor rule. */
 	readonly bump: Bump
-	readonly lastTag: string | null
 	readonly version: string
 	readonly tag: string | null
 }
 
 /** Highest stable release carrying `tagPrefix`; prereleases and other packages are ignored. */
-export function lastStableTag(tags: readonly string[], tagPrefix: string): StableRelease | null {
+export function lastStableRelease(
+	tags: readonly string[],
+	tagPrefix: string,
+): StableRelease | null {
 	let last: StableRelease | null = null
 	let lastParts: StableParts | null = null
 	for (const tag of tags) {
@@ -48,16 +50,12 @@ export function lastStableTag(tags: readonly string[], tagPrefix: string): Stabl
 		const version = tag.slice(tagPrefix.length)
 		const parts = parseStable(version)
 		if (parts === null) continue
-		if (lastParts === null || compareParts(parts, lastParts) > 0) {
+		if (lastParts === null || compareStable(parts, lastParts) > 0) {
 			last = Object.freeze({ tag, version })
 			lastParts = parts
 		}
 	}
 	return last
-}
-
-function compareParts(a: StableParts, b: StableParts): number {
-	return a.major - b.major || a.minor - b.minor || a.patch - b.patch
 }
 
 /**
@@ -70,11 +68,10 @@ export function planRelease(request: ReleaseRequest): ReleasePlan | null {
 	const explicit = request.bump !== "auto"
 	const bump = explicit ? request.bump : bumpFromCommits(request.commits)
 	const base = nextStable(request.lastRelease?.version ?? null, bump, explicit)
-	const lastTag = request.lastRelease?.tag ?? null
 	if (request.channel === "stable") {
 		const tag = `${request.tagPrefix}${base}`
-		return Object.freeze({ channel: "stable", bump, lastTag, version: base, tag })
+		return Object.freeze({ bump, version: base, tag })
 	}
 	const version = nextAlpha(base, request.published)
-	return Object.freeze({ channel: "alpha", bump, lastTag, version, tag: null })
+	return Object.freeze({ bump, version, tag: null })
 }

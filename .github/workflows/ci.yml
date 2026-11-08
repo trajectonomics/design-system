@@ -42,6 +42,6 @@ jobs:
       contents: read
     uses: ./.github/workflows/release-package.yml
     with:
-      package-dir: packages/core
+      package-folder: packages/core
       tag-prefix: core-v
       dry-run: true

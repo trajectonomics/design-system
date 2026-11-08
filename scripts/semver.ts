@@ -44,6 +44,11 @@ export function parseStable(version: string): StableParts | null {
 	})
 }
 
+/** Orders two stable version parts, major first. */
+export function compareStable(a: StableParts, b: StableParts): number {
+	return a.major - b.major || a.minor - b.minor || a.patch - b.patch
+}
+
 /**
  * Next stable version after `last` (null = never released). While on 0.x an
  * inferred breaking change bumps minor, per semver's 0.x convention; pass

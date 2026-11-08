@@ -37,7 +37,7 @@ jobs:
       id-token: write # npm provenance / trusted publishing
     uses: ./.github/workflows/release-package.yml
     with:
-      package-dir: packages/core
+      package-folder: packages/core
       tag-prefix: core-v
       bump: ${{ inputs.bump || 'auto' }}
       dry-run: ${{ inputs.dry-run || false }}

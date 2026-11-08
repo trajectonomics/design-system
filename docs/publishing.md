@@ -37,7 +37,7 @@ documented special case. See ADR 0002.
    pipeline would publish, bump the working tree only (never commit it), publish under the `alpha`
    tag without provenance (it needs CI), approve the 2FA URL npm prints, then discard the bump:
    ```bash
-   VERSION=$(bun scripts/version.ts --package-dir packages/core --tag-prefix core-v --channel alpha)
+   VERSION=$(bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel alpha)
    cd packages/core
    npm version "$VERSION" --no-git-tag-version
    npm publish --access public --tag alpha --provenance=false

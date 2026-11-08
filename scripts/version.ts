@@ -5,12 +5,12 @@
  * the package folder since that tag, and alphas count up from what is already
  * on npm.
  *
- *   bun scripts/version.ts --package-dir packages/core --tag-prefix core-v --channel alpha
- *   bun scripts/version.ts --package-dir packages/core --tag-prefix core-v --channel stable --bump major
+ *   bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel alpha
+ *   bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel stable --bump major
  */
 import { parseArgs } from "node:util"
 import { $ } from "bun"
-import { lastStableTag, planRelease } from "./release-plan"
+import { lastStableRelease, planRelease } from "./release-plan"
 import type { BumpRequest, Channel } from "./semver"
 
 interface PackageManifest {
@@ -21,9 +21,9 @@ async function gitTags(): Promise<string[]> {
 	return (await $`git tag --list`.text()).split("\n").filter(Boolean)
 }
 
-async function commitsTouching(tag: string | null, packageDir: string): Promise<string[]> {
+async function commitsTouching(tag: string | null, packageFolder: string): Promise<string[]> {
 	const range = tag ? `${tag}..HEAD` : "HEAD"
-	const log = await $`git log ${range} --format=%B%x00 -- ${packageDir}`.text()
+	const log = await $`git log ${range} --format=%B%x00 -- ${packageFolder}`.text()
 	return log
 		.split("\0")
 		.map((message) => message.trim())
@@ -66,7 +66,7 @@ async function main(): Promise<void> {
 		options: {
 			channel: { type: "string" },
 			bump: { type: "string", default: "auto" },
-			"package-dir": { type: "string" },
+			"package-folder": { type: "string" },
 			"tag-prefix": { type: "string" },
 			"dry-run": { type: "boolean", default: false },
 			json: { type: "boolean", default: false },
@@ -75,21 +75,21 @@ async function main(): Promise<void> {
 	})
 	const channel = parseChannel(values.channel)
 	const bump = parseBump(values.bump)
-	const packageDir = required(values["package-dir"], "--package-dir").replace(/\/+$/, "")
+	const packageFolder = required(values["package-folder"], "--package-folder").replace(/\/+$/, "")
 	const tagPrefix = required(values["tag-prefix"], "--tag-prefix")
 
-	const lastRelease = lastStableTag(await gitTags(), tagPrefix)
-	const commits = await commitsTouching(lastRelease?.tag ?? null, packageDir)
-	const manifest: unknown = await Bun.file(`${packageDir}/package.json`).json()
+	const lastRelease = lastStableRelease(await gitTags(), tagPrefix)
+	const commits = await commitsTouching(lastRelease?.tag ?? null, packageFolder)
+	const manifest: unknown = await Bun.file(`${packageFolder}/package.json`).json()
 	if (!isPackageManifest(manifest)) {
-		throw new Error(`${packageDir}/package.json does not declare a package name`)
+		throw new Error(`${packageFolder}/package.json does not declare a package name`)
 	}
 	const published = channel === "alpha" ? await publishedVersions(manifest.name) : []
 	const plan = planRelease({ channel, bump, tagPrefix, lastRelease, commits, published })
 	if (plan === null) {
 		if (!values["dry-run"]) {
 			throw new Error(
-				`Nothing to release: no commits touched ${packageDir} since ${lastRelease?.tag ?? "the first commit"}`,
+				`Nothing to release: no commits touched ${packageFolder} since ${lastRelease?.tag ?? "the first commit"}`,
 			)
 		}
 		console.log(values.json ? "null" : "none")

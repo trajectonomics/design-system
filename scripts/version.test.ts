@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path"
 
 const VERSION_SCRIPT = resolve(import.meta.dir, "version.ts")
 const CORE_ARGS = [
-	"--package-dir",
+	"--package-folder",
 	"packages/core",
 	"--tag-prefix",
 	"core-v",
@@ -43,6 +43,14 @@ function repoWithFiles(files: readonly string[]): string {
 	return cwd
 }
 
+function taggedPackage(tag: string, files = ["packages/core/package.json"]): string {
+	const cwd = repoWithFiles(files)
+	git(cwd, "add", ".")
+	git(cwd, "commit", "-q", "-m", "chore: scaffold packages")
+	git(cwd, "tag", tag)
+	return cwd
+}
+
 function version(cwd: string, ...args: string[]): string {
 	const result = Bun.spawnSync(["bun", VERSION_SCRIPT, ...args], {
 		cwd,
@@ -59,10 +67,10 @@ afterEach(() => {
 
 describe("version for one workspace package", () => {
 	it("counts only commits that touched that package's folder", () => {
-		const cwd = repoWithFiles(["packages/core/package.json", "packages/theme/package.json"])
-		git(cwd, "add", ".")
-		git(cwd, "commit", "-q", "-m", "chore: scaffold packages")
-		git(cwd, "tag", "core-v0.1.0")
+		const cwd = taggedPackage("core-v0.1.0", [
+			"packages/core/package.json",
+			"packages/theme/package.json",
+		])
 		commit(cwd, "feat(theme): add theme data", "packages/theme/src/index.ts")
 		commit(cwd, "fix(core): guard token name", "packages/core/src/index.ts")
 
@@ -74,23 +82,23 @@ describe("version for one workspace package", () => {
 	})
 
 	it("reads only the tags carrying that package's prefix", () => {
-		const cwd = repoWithFiles(["packages/core/package.json"])
-		git(cwd, "add", ".")
-		git(cwd, "commit", "-q", "-m", "chore: scaffold package")
-		git(cwd, "tag", "theme-v2.0.0")
+		const cwd = taggedPackage("theme-v2.0.0")
 		commit(cwd, "feat(core): add tokens", "packages/core/src/index.ts")
 
 		expect(version(cwd, ...CORE_ARGS)).toBe("0.1.0")
 	})
 
 	it("reports nothing to release in a dry run when the folder is unchanged", () => {
-		const cwd = repoWithFiles(["packages/core/package.json"])
-		git(cwd, "add", ".")
-		git(cwd, "commit", "-q", "-m", "chore: scaffold package")
-		git(cwd, "tag", "core-v0.1.0")
+		const cwd = taggedPackage("core-v0.1.0")
 		commit(cwd, "docs: describe the package", "README.md")
 
 		expect(version(cwd, ...CORE_ARGS, "--dry-run")).toBe("none")
+	})
+
+	it("refuses a real release when the folder is unchanged", () => {
+		const cwd = taggedPackage("core-v0.1.0")
+		commit(cwd, "docs: describe the package", "README.md")
+
 		expect(() => version(cwd, ...CORE_ARGS)).toThrow("Nothing to release")
 	})
 })
@@ -100,7 +108,7 @@ describe("version argument rules", () => {
 		expect(() =>
 			version(
 				repoWithFiles([]),
-				"--package-dir",
+				"--package-folder",
 				"packages/core",
 				"--tag-prefix",
 				"core-v",
@@ -116,12 +124,15 @@ describe("version argument rules", () => {
 		)
 	})
 
-	it("requires a package folder and a tag prefix", () => {
+	it("requires a package folder", () => {
 		expect(() =>
 			version(repoWithFiles([]), "--tag-prefix", "core-v", "--channel", "stable"),
-		).toThrow("--package-dir is required")
+		).toThrow("--package-folder is required")
+	})
+
+	it("requires a tag prefix", () => {
 		expect(() =>
-			version(repoWithFiles([]), "--package-dir", "packages/core", "--channel", "stable"),
+			version(repoWithFiles([]), "--package-folder", "packages/core", "--channel", "stable"),
 		).toThrow("--tag-prefix is required")
 	})
 })

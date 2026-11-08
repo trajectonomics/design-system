@@ -26,7 +26,7 @@ name: Release package
 on:
   workflow_call:
     inputs:
-      package-dir:
+      package-folder:
         description: Workspace folder of the package to release, e.g. packages/core.
         type: string
         required: true
@@ -44,7 +44,7 @@ on:
         default: false
 
 concurrency:
-  group: release-${{ inputs.package-dir }}-${{ github.ref }}
+  group: release-${{ inputs.package-folder }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -84,48 +84,49 @@ jobs:
         env:
           CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'alpha' }}
           BUMP: ${{ inputs.bump }}
-          PACKAGE_DIR: ${{ inputs.package-dir }}
+          PACKAGE_FOLDER: ${{ inputs.package-folder }}
           TAG_PREFIX: ${{ inputs.tag-prefix }}
           DRY_RUN: ${{ inputs.dry-run }}
         run: |
-          ARGS=(--channel "$CHANNEL" --bump "$BUMP" --package-dir "$PACKAGE_DIR" --tag-prefix "$TAG_PREFIX" --json)
+          ARGS=(--channel "$CHANNEL" --bump "$BUMP" --package-folder "$PACKAGE_FOLDER" --tag-prefix "$TAG_PREFIX" --json)
           if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
           PLAN=$(bun scripts/version.ts "${ARGS[@]}")
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
           if [ "$PLAN" = "null" ]; then
-            echo "Nothing to release: no commits touched $PACKAGE_DIR since its last stable tag."
+            echo "Nothing to release: no commits touched $PACKAGE_FOLDER since its last stable tag."
             echo "version=" >> "$GITHUB_OUTPUT"
           else
             VERSION=$(echo "$PLAN" | jq -r .version)
             TAG=$(echo "$PLAN" | jq -r '.tag // ""')
+            BUMP=$(echo "$PLAN" | jq -r .bump)
             if [ -n "$TAG" ]; then
-              echo "Release $PACKAGE_DIR as $TAG ($CHANNEL)"
+              echo "Release $PACKAGE_FOLDER ($BUMP bump) as $TAG ($CHANNEL)"
             else
-              echo "Release $PACKAGE_DIR version $VERSION ($CHANNEL)"
+              echo "Release $PACKAGE_FOLDER ($BUMP bump) version $VERSION ($CHANNEL)"
             fi
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
             echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Report dry run
-        if: inputs.dry-run
+        if: inputs.dry-run == true
         env:
           VERSION: ${{ steps.version.outputs.version }}
           TAG: ${{ steps.version.outputs.tag }}
           CHANNEL: ${{ steps.version.outputs.channel }}
-          PACKAGE_DIR: ${{ inputs.package-dir }}
+          PACKAGE_FOLDER: ${{ inputs.package-folder }}
         run: |
           if [ -z "$VERSION" ]; then
-            echo "Dry run: nothing to publish; no commit touched $PACKAGE_DIR."
+            echo "Dry run: nothing to publish; no commit touched $PACKAGE_FOLDER."
           elif [ -n "$TAG" ]; then
-            echo "Dry run: would publish $PACKAGE_DIR as $TAG."
+            echo "Dry run: would publish $PACKAGE_FOLDER as $TAG."
           else
-            echo "Dry run: would publish $PACKAGE_DIR version $VERSION ($CHANNEL)."
+            echo "Dry run: would publish $PACKAGE_FOLDER version $VERSION ($CHANNEL)."
           fi
 
       - name: Apply version
         if: inputs.dry-run == false
-        working-directory: ${{ inputs.package-dir }}
+        working-directory: ${{ inputs.package-folder }}
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: npm version "$VERSION" --no-git-tag-version
@@ -137,7 +138,7 @@ jobs:
 
       - name: Publish to npm
         if: inputs.dry-run == false
-        working-directory: ${{ inputs.package-dir }}
+        working-directory: ${{ inputs.package-folder }}
         env:
           DIST_TAG: ${{ steps.version.outputs.channel == 'stable' && 'latest' || 'alpha' }}
         run: |
