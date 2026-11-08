@@ -2,7 +2,8 @@
 export type TokenType = "color" | "length" | "fontFamily"
 
 const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
-const COLOR_FUNCTION = /^(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch)\([^();}]*\)$/i
+const COLOR_FUNCTION =
+	/^(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch)\(\s*(?:none|[+.\d%-])[^();}]*\)$/i
 const LENGTH =
 	/^(?:0|-?(?:\d+|\d*\.\d+)(?:px|rem|em|%|ch|ex|vh|vw|vmin|vmax|svh|svw|lvh|lvw|dvh|dvw|pt|pc|cm|mm|in|fr|cqw|cqi|cqh|cqb|cqmin|cqmax))$/
 const FONT_FAMILY =
@@ -22,7 +23,5 @@ export function isTokenValue(type: TokenType, value: string): boolean {
 			return LENGTH.test(value)
 		case "fontFamily":
 			return FONT_FAMILY.test(value)
-		default:
-			return false
 	}
 }

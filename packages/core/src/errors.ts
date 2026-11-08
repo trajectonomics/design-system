@@ -1,4 +1,4 @@
-/** Machine-readable rejection codes for Design Token and Theme construction. */
+/** Machine-readable rejection codes for Design Token construction. */
 export enum DomainErrorCode {
 	INVALID_TOKEN_NAME = "INVALID_TOKEN_NAME",
 	INVALID_TOKEN_TYPE = "INVALID_TOKEN_TYPE",

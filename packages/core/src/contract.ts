@@ -28,7 +28,7 @@ export interface SemanticTokenRole {
 	readonly type: TokenType
 }
 
-/** The fixed, closed set of Semantic Token names that every Theme must resolve. */
+/** The versioned, closed set of Semantic Token roles that every Theme must resolve. */
 export interface SemanticTokenContract {
 	readonly version: number
 	readonly roles: readonly SemanticTokenRole[]
@@ -61,13 +61,10 @@ export const CONTRACT_ROLE_NAMES: readonly SemanticTokenName[] = Object.freeze(
 	Object.keys(ROLE_TYPES) as SemanticTokenName[],
 )
 
-/** The Contract roles as frozen data, in Contract order. */
-export const CONTRACT_ROLES: readonly SemanticTokenRole[] = Object.freeze(
-	CONTRACT_ROLE_NAMES.map((name) => Object.freeze({ name, type: ROLE_TYPES[name] })),
-)
-
 /** The versioned, closed Semantic Token Contract that every Theme resolves. */
 export const semanticTokenContract: SemanticTokenContract = Object.freeze({
 	version: 1,
-	roles: CONTRACT_ROLES,
+	roles: Object.freeze(
+		CONTRACT_ROLE_NAMES.map((name) => Object.freeze({ name, type: ROLE_TYPES[name] })),
+	),
 })

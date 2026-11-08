@@ -10,13 +10,13 @@ export interface Theme {
 }
 
 /** One Primitive Token chosen for every role in the Semantic Token Contract. */
-export type ContractAliases = Readonly<Record<SemanticTokenName, PrimitiveToken>>
+export type RolePrimitives = Readonly<Record<SemanticTokenName, PrimitiveToken>>
 
 /** Resolves a built-in Theme from one Primitive Token per Contract role. */
-export function defineBuiltInTheme(name: string, aliases: ContractAliases): Theme {
+export function defineBuiltInTheme(name: string, rolePrimitives: RolePrimitives): Theme {
 	const tokens: Record<string, string> = {}
 	for (const role of CONTRACT_ROLE_NAMES) {
-		tokens[role] = createSemanticToken({ name: role, primitive: aliases[role] }).value
+		tokens[role] = createSemanticToken({ name: role, primitive: rolePrimitives[role] }).value
 	}
 	return Object.freeze({
 		name,

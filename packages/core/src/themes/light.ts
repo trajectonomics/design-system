@@ -1,11 +1,11 @@
 import { primitiveTokens } from "../primitives"
-import { type ContractAliases, defineBuiltInTheme, type Theme } from "../theme"
+import { defineBuiltInTheme, type RolePrimitives, type Theme } from "../theme"
 
 const { white, neutral50, neutral100, neutral200, neutral400, neutral500, neutral900, neutral950 } =
 	primitiveTokens
 const { red600 } = primitiveTokens
 
-const aliases: ContractAliases = {
+const rolePrimitives: RolePrimitives = {
 	"color.background": white,
 	"color.foreground": neutral950,
 	"color.card": white,
@@ -28,4 +28,4 @@ const aliases: ContractAliases = {
 }
 
 /** The built-in light Theme. */
-export const lightTheme: Theme = defineBuiltInTheme("light", aliases)
+export const lightTheme: Theme = defineBuiltInTheme("light", rolePrimitives)

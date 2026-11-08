@@ -44,10 +44,14 @@ const validValues: readonly PrimitiveTokenProps[] = [
 const invalidValues: readonly PrimitiveTokenProps[] = [
 	{ name: "color.a", type: "color", value: "red" },
 	{ name: "color.b", type: "color", value: "color.neutral.900" },
+	{ name: "color.c", type: "color", value: "rgb(foo)" },
+	{ name: "color.d", type: "color", value: "rgb(0 0 0); }" },
+	{ name: "color.e", type: "color", value: "url(#ffffff)" },
 	{ name: "space.a", type: "length", value: "#ffffff" },
 	{ name: "space.b", type: "length", value: "4" },
 	{ name: "font.a", type: "fontFamily", value: "#ffffff" },
 	{ name: "font.b", type: "fontFamily", value: "Inter; color: red" },
+	{ name: "font.c", type: "fontFamily", value: "Inter } body { color: red" },
 ]
 
 describe("Primitive Token rules", () => {
