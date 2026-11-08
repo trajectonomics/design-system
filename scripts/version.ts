@@ -1,79 +1,32 @@
-// Core release semver calculator
 /**
- * Computes the version the Release workflow publishes. Nobody edits
- * package.json "version" by hand: stable versions come from git tags (vX.Y.Z),
- * the bump comes from conventional commit messages since the last tag, and
- * alphas count up from what is already on npm.
+ * Computes the version a package's release workflow publishes. Nobody edits
+ * package.json "version" by hand: stable versions come from per-package git
+ * tags (<prefix>X.Y.Z), the bump comes from conventional commits that touched
+ * the package folder since that tag, and alphas count up from what is already
+ * on npm.
  *
- *   bun scripts/version.ts --channel alpha              -> 0.2.0-alpha.3
- *   bun scripts/version.ts --channel stable             -> 0.2.0
- *   bun scripts/version.ts --channel stable --bump major -> 1.0.0
+ *   bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel alpha
+ *   bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel stable --bump major
  */
 import { parseArgs } from "node:util"
 import { $ } from "bun"
+import { lastStableRelease, planRelease } from "./release-plan"
+import type { BumpRequest, Channel } from "./semver"
 
-export type Bump = "major" | "minor" | "patch"
-export type Channel = "alpha" | "stable"
-
-const STABLE = /^(\d+)\.(\d+)\.(\d+)$/
-const BREAKING_SUBJECT = /^\w+(\([^)]*\))?!:/
-const BREAKING_FOOTER = /^BREAKING[ -]CHANGE:/m
-const FEAT = /^feat(\([^)]*\))?:/
-
-/** Largest bump any of the commit messages asks for. Non-feat commits are a patch. */
-export function bumpFromCommits(messages: readonly string[]): Bump {
-	let bump: Bump = "patch"
-	for (const message of messages) {
-		if (BREAKING_SUBJECT.test(message) || BREAKING_FOOTER.test(message)) return "major"
-		if (FEAT.test(message)) bump = "minor"
-	}
-	return bump
+interface PackageManifest {
+	readonly name: string
 }
 
-/**
- * Next stable version after `last` (null = never released). While on 0.x an
- * inferred breaking change bumps minor, per semver's 0.x convention; pass
- * `explicit` to take a major bump literally (e.g. to cut 1.0.0).
- */
-export function nextStable(last: string | null, bump: Bump, explicit = false): string {
-	const match = STABLE.exec(last ?? "0.0.0")
-	if (!match) throw new Error(`Last release is not a stable semver version: ${last}`)
-	const [major, minor, patch] = [Number(match[1]), Number(match[2]), Number(match[3])]
-	const effective = bump === "major" && major === 0 && !explicit ? "minor" : bump
-	switch (effective) {
-		case "major":
-			return `${major + 1}.0.0`
-		case "minor":
-			return `${major}.${minor + 1}.0`
-		case "patch":
-			return `${major}.${minor}.${patch + 1}`
-	}
+async function gitTags(): Promise<string[]> {
+	return (await $`git tag --list`.text()).split("\n").filter(Boolean)
 }
 
-/** `<base>-alpha.<n>`, one past the highest alpha of `base` already published. */
-export function nextAlpha(base: string, published: readonly string[]): string {
-	const prefix = `${base}-alpha.`
-	let next = 0
-	for (const version of published) {
-		if (!version.startsWith(prefix)) continue
-		const n = Number(version.slice(prefix.length))
-		if (Number.isInteger(n) && n >= next) next = n + 1
-	}
-	return `${prefix}${next}`
-}
-
-async function lastStableTag(): Promise<string | null> {
-	const tags = (await $`git tag --list ${"v*"} --sort=-v:refname`.text()).split("\n")
-	const tag = tags.find((t) => STABLE.test(t.slice(1)))
-	return tag ?? null
-}
-
-async function commitsSince(tag: string | null): Promise<string[]> {
+async function commitsTouching(tag: string | null, packageFolder: string): Promise<string[]> {
 	const range = tag ? `${tag}..HEAD` : "HEAD"
-	const log = await $`git log ${range} --format=%B%x00`.text()
+	const log = await $`git log ${range} --format=%B%x00 -- ${packageFolder}`.text()
 	return log
 		.split("\0")
-		.map((m) => m.trim())
+		.map((message) => message.trim())
 		.filter(Boolean)
 }
 
@@ -87,34 +40,62 @@ async function publishedVersions(name: string): Promise<string[]> {
 	return Array.isArray(parsed) ? parsed.map(String) : [String(parsed)]
 }
 
+function required(value: string | undefined, flag: string): string {
+	if (value === undefined || value.trim() === "") throw new Error(`${flag} is required`)
+	return value
+}
+
+function parseChannel(value: string | undefined): Channel {
+	if (value === "alpha" || value === "stable") return value
+	throw new Error("--channel must be alpha or stable")
+}
+
+function parseBump(value: string | undefined): BumpRequest {
+	if (value === "auto" || value === "major" || value === "minor" || value === "patch") return value
+	throw new Error("--bump must be auto, major, minor or patch")
+}
+
+function isPackageManifest(value: unknown): value is PackageManifest {
+	if (typeof value !== "object" || value === null || !("name" in value)) return false
+	return typeof value.name === "string"
+}
+
 async function main(): Promise<void> {
 	const { values } = parseArgs({
 		args: Bun.argv.slice(2),
 		options: {
 			channel: { type: "string" },
 			bump: { type: "string", default: "auto" },
+			"package-folder": { type: "string" },
+			"tag-prefix": { type: "string" },
+			"dry-run": { type: "boolean", default: false },
+			json: { type: "boolean", default: false },
 		},
 		strict: true,
 	})
-	const channel = values.channel
-	if (channel !== "alpha" && channel !== "stable")
-		throw new Error("--channel must be alpha or stable")
-	const bumpArg = values.bump
-	if (bumpArg !== "auto" && bumpArg !== "major" && bumpArg !== "minor" && bumpArg !== "patch") {
-		throw new Error("--bump must be auto, major, minor or patch")
-	}
+	const channel = parseChannel(values.channel)
+	const bump = parseBump(values.bump)
+	const packageFolder = required(values["package-folder"], "--package-folder").replace(/\/+$/, "")
+	const tagPrefix = required(values["tag-prefix"], "--tag-prefix")
 
-	const last = await lastStableTag()
-	const commits = await commitsSince(last)
-	if (commits.length === 0) throw new Error(`Nothing to release: no commits since ${last}`)
-	const bump = bumpArg === "auto" ? bumpFromCommits(commits) : bumpArg
-	const base = nextStable(last?.slice(1) ?? null, bump, bumpArg !== "auto")
-	if (channel === "stable") {
-		console.log(base)
+	const lastRelease = lastStableRelease(await gitTags(), tagPrefix)
+	const commits = await commitsTouching(lastRelease?.tag ?? null, packageFolder)
+	const manifest: unknown = await Bun.file(`${packageFolder}/package.json`).json()
+	if (!isPackageManifest(manifest)) {
+		throw new Error(`${packageFolder}/package.json does not declare a package name`)
+	}
+	const published = channel === "alpha" ? await publishedVersions(manifest.name) : []
+	const plan = planRelease({ channel, bump, tagPrefix, lastRelease, commits, published })
+	if (plan === null) {
+		if (!values["dry-run"]) {
+			throw new Error(
+				`Nothing to release: no commits touched ${packageFolder} since ${lastRelease?.tag ?? "the first commit"}`,
+			)
+		}
+		console.log(values.json ? "null" : "none")
 		return
 	}
-	const pkg: { name: string } = await Bun.file("package.json").json()
-	console.log(nextAlpha(base, await publishedVersions(pkg.name)))
+	console.log(values.json ? JSON.stringify(plan) : plan.version)
 }
 
 if (import.meta.main) await main()

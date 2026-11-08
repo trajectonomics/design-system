@@ -1,0 +1,43 @@
+name: Release core
+
+# Thin caller of release-package.yml for packages/core. Keep the filename: npm
+# Trusted Publishing for @trajectonomics/design-system names the CALLING
+# workflow, so its Trusted Publisher entry must be repository
+# trajectonomics/design-system, workflow release-core.yml.
+#
+# Only changes under packages/core trigger a release, so a change to another
+# package never publishes this one. A push to main publishes an alpha
+# (dist-tag "alpha"); a manual run publishes a stable version (dist-tag
+# "latest"), tags core-vX.Y.Z and creates the GitHub release. Run a stable
+# release from main, and use dry-run: true to plan it without publishing.
+#
+# DELIBERATE SPECIAL CASE: the shared multi-package pipeline belongs to
+# trajectonomics/cicd; when it lands, delete this caller and release-package.yml.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/core/**"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump. auto reads commits that touched packages/core.
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+      dry-run:
+        description: Run the release checks and plan without publishing or tagging.
+        type: boolean
+        default: false
+
+jobs:
+  release:
+    permissions:
+      contents: write # tag + GitHub release
+      id-token: write # npm provenance / trusted publishing
+    uses: ./.github/workflows/release-package.yml
+    with:
+      package-folder: packages/core
+      tag-prefix: core-v
+      bump: ${{ inputs.bump || 'auto' }}
+      dry-run: ${{ inputs.dry-run || false }}

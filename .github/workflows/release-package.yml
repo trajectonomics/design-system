@@ -1,0 +1,171 @@
+name: Release package
+
+# Reusable release for one published workspace package. Each package gets a thin
+# caller (release-core.yml today; release-theme.yml and release-svelte.yml when
+# those packages land) that owns its trigger paths and tag prefix. Nothing is
+# copied between packages.
+#
+# DELIBERATE SPECIAL CASE: this repo has several independently released packages
+# while the shared pipeline supports one. The shared multi-package pipeline is
+# trajectonomics/cicd's job; when it lands, delete this workflow and its callers.
+#
+# npm Trusted Publishing validates the CALLING workflow's filename, not this one.
+# Configure each package's Trusted Publisher entry with this repository and its
+# caller, e.g. for packages/core: repository trajectonomics/design-system,
+# workflow release-core.yml.
+#
+#   push to main    -> alpha  (dist-tag "alpha")
+#   manual dispatch -> stable (dist-tag "latest"): tags <prefix>X.Y.Z and creates
+#                      a GitHub release. Run it from main.
+#
+# A caller can pass dry-run: true (CI does this on pull requests) to compute and
+# print the version without publishing or tagging.
+#
+# Callers own the permissions: a real release needs contents: write and
+# id-token: write; a dry-run caller needs only contents: read.
+on:
+  workflow_call:
+    inputs:
+      package-folder:
+        description: Workspace folder of the package to release, e.g. packages/core.
+        type: string
+        required: true
+      tag-prefix:
+        description: Per-package tag prefix, e.g. core-v, producing core-vX.Y.Z.
+        type: string
+        required: true
+      bump:
+        description: Stable bump. auto reads the conventional commits that touched the package.
+        type: string
+        default: auto
+      dry-run:
+        description: Run the release checks and plan without applying, publishing or tagging.
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-${{ inputs.package-folder }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stable releases must run on main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && inputs.dry-run == false
+        run: |
+          echo "::error::Run the stable release from main, not $GITHUB_REF."
+          exit 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags and per-package commit history drive the version
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run verification checks
+        run: bun run check
+
+      - name: Compute version
+        id: version
+        env:
+          CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'alpha' }}
+          BUMP: ${{ inputs.bump }}
+          PACKAGE_FOLDER: ${{ inputs.package-folder }}
+          TAG_PREFIX: ${{ inputs.tag-prefix }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          ARGS=(--channel "$CHANNEL" --bump "$BUMP" --package-folder "$PACKAGE_FOLDER" --tag-prefix "$TAG_PREFIX" --json)
+          if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
+          PLAN=$(bun scripts/version.ts "${ARGS[@]}")
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          if [ "$PLAN" = "null" ]; then
+            echo "Nothing to release: no commits touched $PACKAGE_FOLDER since its last stable tag."
+            echo "version=" >> "$GITHUB_OUTPUT"
+          else
+            VERSION=$(echo "$PLAN" | jq -r .version)
+            TAG=$(echo "$PLAN" | jq -r '.tag // ""')
+            RESOLVED_BUMP=$(echo "$PLAN" | jq -r .bump)
+            if [ -n "$TAG" ]; then
+              echo "Release $PACKAGE_FOLDER ($RESOLVED_BUMP bump) as $TAG ($CHANNEL)"
+            else
+              echo "Release $PACKAGE_FOLDER ($RESOLVED_BUMP bump) version $VERSION ($CHANNEL)"
+            fi
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report dry run
+        if: inputs.dry-run == true
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          CHANNEL: ${{ steps.version.outputs.channel }}
+          PACKAGE_FOLDER: ${{ inputs.package-folder }}
+        run: |
+          if [ -z "$VERSION" ]; then
+            echo "Dry run: nothing to publish; no commit touched $PACKAGE_FOLDER."
+          elif [ -n "$TAG" ]; then
+            echo "Dry run: would publish $PACKAGE_FOLDER as $TAG."
+          else
+            echo "Dry run: would publish $PACKAGE_FOLDER version $VERSION ($CHANNEL)."
+          fi
+
+      - name: Apply version
+        if: inputs.dry-run == false
+        working-directory: ${{ inputs.package-folder }}
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version
+
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; setup-node 22 ships npm 10.x.
+      - name: Upgrade npm for trusted publishing
+        if: inputs.dry-run == false
+        run: npm install -g npm@^11.5.1
+
+      - name: Publish to npm
+        if: inputs.dry-run == false
+        working-directory: ${{ inputs.package-folder }}
+        env:
+          DIST_TAG: ${{ steps.version.outputs.channel == 'stable' && 'latest' || 'alpha' }}
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          # A re-run must not fail after a successful publish.
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm; skipping publish."
+            exit 0
+          fi
+          npm publish --tag "$DIST_TAG" --provenance
+
+      # Tag and release only after npm accepted the version, so a failed publish leaves no tag.
+      - name: Tag and GitHub release
+        if: inputs.dry-run == false && steps.version.outputs.channel == 'stable'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG already exists; skipping."
+            exit 0
+          fi
+          # GitHub's API fails transiently (HTTP 500); retry before giving up.
+          for attempt in 1 2 3; do
+            gh release create "$TAG" --target "$GITHUB_SHA" --generate-notes && exit 0
+            echo "Attempt $attempt failed; retrying."
+            sleep $((attempt * 5))
+          done
+          exit 1
