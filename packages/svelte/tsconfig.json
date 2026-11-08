@@ -1,0 +1,21 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["bun"],
+		"paths": {
+			"@trajectonomics/design-system": ["../core/src/index.ts"],
+			"@trajectonomics/design-system-theme": ["../theme/src/index.ts"]
+		}
+	},
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.svelte",
+		"src/**/*.svelte.ts",
+		"tests/**/*.ts",
+		"tests/**/*.svelte",
+		"tests/**/*.svelte.ts",
+		"vitest-setup.ts",
+		"vite.config.ts"
+	]
+}

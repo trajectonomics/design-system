@@ -32,6 +32,25 @@ jobs:
       - name: Run verification checks
         run: bun run check
 
+  consumer-smoke:
+    name: Consumer smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Pack the packages and verify a consumer app
+        run: bun run smoke
+
   # Exercises the release workflow's planning path without publishing or tagging.
   # It is path-independent on purpose: an unrelated pull request still proves the
   # reusable workflow resolves, installs and computes (or reports no) version.

@@ -1,0 +1,76 @@
+{
+	"name": "@trajectonomics/design-system-svelte",
+	"version": "0.0.0-development",
+	"description": "Trajectonomics design system: Svelte components and Hooks",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/trajectonomics/design-system.git",
+		"directory": "packages/svelte"
+	},
+	"type": "module",
+	"sideEffects": [
+		"**/*.css"
+	],
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"svelte": "./dist/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"svelte": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./style.css": "./dist/style.css",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"provenance": true,
+		"tag": "latest"
+	},
+	"scripts": {
+		"build": "svelte-package -i src -o dist && bun run build:css",
+		"build:css": "tailwindcss -i app.css -o dist/style.css --minify",
+		"test": "vitest run",
+		"format:svelte": "prettier --plugin prettier-plugin-svelte --write --no-error-on-unmatched-pattern \"src/**/*.svelte\" \"tests/**/*.svelte\"",
+		"typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+		"lint": "biome ci --error-on-warnings . && prettier --plugin prettier-plugin-svelte --check --no-error-on-unmatched-pattern \"src/**/*.svelte\" \"tests/**/*.svelte\"",
+		"lint:package": "test -s dist/style.css && publint --strict && attw --pack . --profile esm-only --ignore-rules internal-resolution-error --exclude-entrypoints ./style.css"
+	},
+	"peerDependencies": {
+		"@trajectonomics/design-system": "^0.1.0",
+		"@trajectonomics/design-system-theme": "^0.1.0",
+		"svelte": "^5.0.0"
+	},
+	"devDependencies": {
+		"@sveltejs/package": "^3.0.2",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"@tailwindcss/cli": "^4.3.5",
+		"@testing-library/jest-dom": "^7.0.1",
+		"@testing-library/svelte": "^5.4.2",
+		"@trajectonomics/design-system": "workspace:*",
+		"@trajectonomics/design-system-theme": "workspace:*",
+		"@types/bun": "^1.4.4",
+		"jsdom": "^31.0.0",
+		"prettier": "^3.9.10",
+		"prettier-plugin-svelte": "^4.1.1",
+		"svelte": "^5.57.3",
+		"svelte-check": "^4.7.8",
+		"tailwindcss": "^4.3.5",
+		"typescript": "~6.0.3",
+		"vite": "^8.3.6",
+		"vitest": "^5.1.0"
+	},
+	"dependencies": {
+		"clsx": "^2.1.1",
+		"tailwind-merge": "^3.7.0"
+	}
+}

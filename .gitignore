@@ -7,3 +7,8 @@ coverage/
 *.log
 .env
 .env.*
+.svelte-kit/
+.svelte-check/
+storybook-static/
+artifacts/
+fixtures/consumer/bun.lock

@@ -9,7 +9,9 @@
 		"directory": "packages/theme"
 	},
 	"type": "module",
-	"sideEffects": false,
+	"sideEffects": [
+		"**/*.css"
+	],
 	"engines": {
 		"node": ">=20.0.0"
 	},
@@ -29,10 +31,12 @@
 		},
 		"./themes/light.css": "./dist/themes/light.css",
 		"./themes/dark.css": "./dist/themes/dark.css",
+		"./tailwind.css": "./tailwind.css",
 		"./package.json": "./package.json"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"tailwind.css"
 	],
 	"publishConfig": {
 		"access": "public",
@@ -42,17 +46,20 @@
 	"scripts": {
 		"build": "tsdown && bun run build:css",
 		"build:css": "bun run scripts/build-theme-css.ts",
+		"generate:tailwind": "bun run scripts/generate-tailwind-theme.ts",
 		"test": "bun test",
 		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json && tsc -p tsconfig.scripts.json",
 		"lint": "biome ci --error-on-warnings .",
-		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./themes/light.css ./themes/dark.css"
+		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./themes/light.css ./themes/dark.css ./tailwind.css"
 	},
 	"peerDependencies": {
 		"@trajectonomics/design-system": "^0.1.0"
 	},
 	"devDependencies": {
+		"@tailwindcss/cli": "^4.3.5",
 		"@trajectonomics/design-system": "workspace:*",
 		"@types/bun": "^1.4.4",
+		"tailwindcss": "^4.3.5",
 		"typescript": "^7.0.2"
 	}
 }

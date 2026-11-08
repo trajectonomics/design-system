@@ -1,0 +1,13 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["vite/client"],
+		"paths": {
+			"@trajectonomics/design-system": ["../../packages/core/src/index.ts"],
+			"@trajectonomics/design-system-theme": ["../../packages/theme/src/index.ts"],
+			"@trajectonomics/design-system-svelte": ["../../packages/svelte/src/index.ts"]
+		}
+	},
+	"include": [".storybook/**/*.ts", "src/**/*.ts", "src/**/*.svelte"]
+}
