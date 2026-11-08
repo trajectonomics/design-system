@@ -10,6 +10,8 @@ Instructions for AI coding agents in `trajectonomics/design-system` (`@trajecton
 4. Bun only: `bun install`, `bun test`, `bun run <script>`. Do not add npm/pnpm/yarn lockfiles.
 5. Done means `bun run check` passes (Biome lint with zero warnings, strict typecheck, tests, build, publint + are-the-types-wrong). `bun run format` fixes formatting and import order. Do not loosen `tsconfig.base.json` or `biome.json` to make an error go away.
 6. Never edit `version` in `package.json` (a first-publish bump is never committed) and never run `npm publish` locally, except the very first publish of a brand-new package, which the maintainer may run locally with `--provenance=false`. Merges to `main` publish an alpha for each package the merge touched; a stable release is that package's manual release workflow (see README "Releasing"). PR titles are conventional commits (`feat:`, `fix:`, `feat!:` ...) because they decide the next version.
+7. Pi (`pi.dev`) model restriction: When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
+
 
 ## Agent skills
 
