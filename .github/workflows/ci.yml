@@ -31,3 +31,17 @@ jobs:
 
       - name: Run verification checks
         run: bun run check
+
+  # Exercises the release workflow's planning path without publishing or tagging.
+  # It is path-independent on purpose: an unrelated pull request still proves the
+  # reusable workflow resolves, installs and computes (or reports no) version.
+  release-dry-run:
+    name: Release dry run (core)
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/release-package.yml
+    with:
+      package-dir: packages/core
+      tag-prefix: core-v
+      dry-run: true
