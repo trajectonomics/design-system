@@ -32,8 +32,13 @@ mirrors the caller's input path:
 4. a value containing characters that could break out of a CSS declaration (`;`, `}`, `url(`),
 5. an invalid Theme name (empty).
 
-Built-in Themes are ordinary Themes: `light` and `dark` go through the same `defineTheme` path and
+Built-in Themes are ordinary Themes: `light` and `dark` go through the same Theme resolution path and
 have no special status.
+
+**Amendment (`core` slice).** Dependencies point only `theme` → `core`, so `core` cannot call
+`defineTheme`. `core` resolves its built-in Themes through one internal `defineBuiltInTheme` path
+from one Primitive Token per Contract role. `defineTheme` remains the one checked path for raw Theme
+input in `theme`, and the built-in Themes remain ordinary Themes with no special status.
 
 **CSS emission is pure and deterministic.** A pure function turns any valid Theme into CSS custom
 properties scoped by a `data-theme` selector. The same Theme always produces byte-identical CSS, so

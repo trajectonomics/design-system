@@ -18,10 +18,22 @@ bun add @trajectonomics/design-system
 ## Getting Started
 
 ```typescript
-import { createDesignToken } from "@trajectonomics/design-system"
+import {
+  darkTheme,
+  lightTheme,
+  primitiveTokens,
+  semanticTokenContract,
+} from "@trajectonomics/design-system"
 
-const token = createDesignToken({ name: "color.blue.500", value: "#3b82f6" })
-console.log(token)
+// The closed, versioned set of Semantic Token names every Theme resolves.
+console.log(semanticTokenContract.version) // 1
+
+// Built-in Themes are plain, frozen data.
+console.log(lightTheme.tokens["color.primary"]) // "#171717"
+console.log(darkTheme.tokens["color.primary"]) // "#e5e5e5"
+
+// Primitive Tokens are the raw values that Semantic Tokens alias.
+console.log(primitiveTokens.neutral900.value) // "#171717"
 ```
 
 ---
