@@ -20,7 +20,8 @@
 		"lint:package": "bun run --filter '*' lint:package",
 		"check": "bun run lint && bun run typecheck && bun run test && bun run build && bun run lint:package",
 		"skills:check": "bunx skills@latest check",
-		"skills:update": "bunx skills@latest update"
+		"skills:update": "bunx skills@latest update",
+		"smoke": "bash scripts/consumer-smoke.sh"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.18.5",

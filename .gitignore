@@ -10,3 +10,5 @@ coverage/
 .svelte-kit/
 .svelte-check/
 storybook-static/
+artifacts/
+fixtures/consumer/bun.lock
