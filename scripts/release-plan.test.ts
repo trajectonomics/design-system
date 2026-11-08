@@ -63,7 +63,7 @@ describe("planRelease", () => {
 		expect(plan?.version).toBe("0.1.1-alpha.1")
 	})
 
-	it("never regresses the coreRequest while more commits arrive before a stable release", () => {
+	it("never regresses the base version while more commits arrive before a stable release", () => {
 		const first = planRelease({ ...coreRequest, channel: "alpha", commits: ["fix(core): guard"] })
 		const second = planRelease({
 			...coreRequest,

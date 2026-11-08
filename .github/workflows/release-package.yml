@@ -98,11 +98,11 @@ jobs:
           else
             VERSION=$(echo "$PLAN" | jq -r .version)
             TAG=$(echo "$PLAN" | jq -r '.tag // ""')
-            BUMP=$(echo "$PLAN" | jq -r .bump)
+            RESOLVED_BUMP=$(echo "$PLAN" | jq -r .bump)
             if [ -n "$TAG" ]; then
-              echo "Release $PACKAGE_FOLDER ($BUMP bump) as $TAG ($CHANNEL)"
+              echo "Release $PACKAGE_FOLDER ($RESOLVED_BUMP bump) as $TAG ($CHANNEL)"
             else
-              echo "Release $PACKAGE_FOLDER ($BUMP bump) version $VERSION ($CHANNEL)"
+              echo "Release $PACKAGE_FOLDER ($RESOLVED_BUMP bump) version $VERSION ($CHANNEL)"
             fi
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
             echo "tag=$TAG" >> "$GITHUB_OUTPUT"
