@@ -15,7 +15,7 @@ export interface UseThemeOptions {
 export interface ThemeHook {
 	/** The Theme applied by the most recent `setTheme` call. */
 	readonly current: Theme | undefined
-	/** Applies a valid Theme to the chosen element and injects its CSS. */
+	/** Applies a valid Theme to the chosen element, replacing the Hook's previous element. */
 	setTheme(theme: Theme, element?: Element | null): void
 }
 

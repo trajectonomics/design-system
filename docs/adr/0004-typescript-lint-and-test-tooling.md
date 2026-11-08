@@ -65,6 +65,11 @@ lint. The consumer smoke test packs the real tarballs and runs `svelte-check` pl
 fixture Vite + Svelte app, which is the guard against the TypeScript 6/7 split leaking broken types
 to customers.
 
+The Svelte package's `attw` run ignores only `internal-resolution-error`: generated declarations
+import `.svelte` component files, which Node16 resolution cannot resolve without the Svelte
+toolchain. The consumer smoke test's `svelte-check` is the guard that the same declarations resolve
+in a real Vite + Svelte app.
+
 ## Consequences
 
 - Two TypeScript versions coexist in the workspace. Contributors must know which package they are

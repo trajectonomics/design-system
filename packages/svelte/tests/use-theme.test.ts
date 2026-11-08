@@ -99,6 +99,18 @@ describe("useTheme", () => {
 		expect(element.getAttribute("data-theme")).toBe("brand-ocean")
 	})
 
+	it("moves a Theme from the page to a nested element", () => {
+		const nested = document.createElement("section")
+		document.body.append(nested)
+
+		const theme = useTheme({ element: () => document.documentElement })
+		theme.setTheme(lightTheme)
+		theme.setTheme(darkTheme, nested)
+
+		expect(document.documentElement.hasAttribute("data-theme")).toBe(false)
+		expect(nested.getAttribute("data-theme")).toBe("dark")
+	})
+
 	it("clears the previous element's data-theme when the Theme moves", () => {
 		const first = document.createElement("div")
 		const second = document.createElement("div")
