@@ -10,6 +10,7 @@
 			"!**/coverage",
 			"!**/*.md",
 			"!**/skills-lock.json",
+			"!**/*.css",
 			"!**/.agents",
 			"!**/.claude"
 		]
