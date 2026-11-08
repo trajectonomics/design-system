@@ -13,7 +13,7 @@ export interface SemanticTokenProps {
 export interface SemanticToken {
 	readonly name: string
 	readonly type: TokenType
-	readonly primitive: string
+	readonly primitiveName: string
 	readonly value: string
 }
 
@@ -45,7 +45,7 @@ export function createSemanticToken(props: SemanticTokenProps): SemanticToken {
 	return Object.freeze({
 		name,
 		type: role.type,
-		primitive: props.primitive.name,
+		primitiveName: props.primitive.name,
 		value: props.primitive.value,
 	})
 }

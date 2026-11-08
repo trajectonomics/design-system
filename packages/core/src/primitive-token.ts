@@ -1,13 +1,6 @@
 import { DomainError, DomainErrorCode } from "./errors"
 import { isTokenType, isTokenValue, type TokenType } from "./token-type"
 
-/** Input for creating a Primitive Token. */
-export interface PrimitiveTokenProps {
-	readonly name: string
-	readonly type: TokenType
-	readonly value: string
-}
-
 /** A Primitive Token: a raw, context-free value that never references another token. */
 export interface PrimitiveToken {
 	readonly name: string
@@ -15,7 +8,10 @@ export interface PrimitiveToken {
 	readonly value: string
 }
 
-/** Creates a frozen Primitive Token, rejecting a blank name or a value that does not match its type. */
+/** Input for creating a Primitive Token. */
+export type PrimitiveTokenProps = PrimitiveToken
+
+/** Creates a frozen Primitive Token, rejecting invalid names, Token Types or literal values. */
 export function createPrimitiveToken(props: PrimitiveTokenProps): PrimitiveToken {
 	const name = props.name.trim()
 	if (name.length === 0) {

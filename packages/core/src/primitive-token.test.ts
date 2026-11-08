@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test"
+import { expectDomainError } from "./expect-domain-error.support"
 import type { PrimitiveTokenProps, TokenType } from "./index"
-import { createPrimitiveToken, DomainError, DomainErrorCode } from "./index"
+import { createPrimitiveToken, DomainErrorCode } from "./index"
 
 describe("Primitive Tokens", () => {
 	it("holds a literal value and is frozen", () => {
@@ -71,7 +72,7 @@ describe("Primitive Token rules", () => {
 		})
 	}
 
-	it("rejects a blank name with INVALID_TOKEN_NAME on field name", () => {
+	it("rejects a Primitive Token with a blank name", () => {
 		expectDomainError(
 			() => createPrimitiveToken({ name: "   ", type: "color", value: "#ffffff" }),
 			DomainErrorCode.INVALID_TOKEN_NAME,
@@ -79,7 +80,7 @@ describe("Primitive Token rules", () => {
 		)
 	})
 
-	it("rejects an unknown Token Type with INVALID_TOKEN_TYPE on field type", () => {
+	it("rejects a Primitive Token with an unknown Token Type", () => {
 		expectDomainError(
 			() =>
 				createPrimitiveToken({
@@ -92,18 +93,3 @@ describe("Primitive Token rules", () => {
 		)
 	})
 })
-
-function expectDomainError(run: () => unknown, code: DomainErrorCode, field: string): void {
-	let caught: unknown
-	try {
-		run()
-	} catch (error) {
-		caught = error
-	}
-	expect(caught).toBeInstanceOf(DomainError)
-	if (!(caught instanceof DomainError)) {
-		throw new Error("expected a DomainError")
-	}
-	expect(caught.code).toBe(code)
-	expect(caught.field).toBe(field)
-}
