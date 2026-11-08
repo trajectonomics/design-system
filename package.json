@@ -13,7 +13,7 @@
 	],
 	"scripts": {
 		"lint": "biome ci --error-on-warnings . && bun run --filter '*' lint",
-		"format": "biome check --write .",
+		"format": "biome check --write . && bun run --filter '*' format:svelte",
 		"typecheck": "tsc -p tsconfig.json && bun run --filter '*' typecheck",
 		"test": "bun test scripts && bun run --filter '*' test",
 		"build": "bun run --filter '*' build",

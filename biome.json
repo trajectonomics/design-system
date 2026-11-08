@@ -11,6 +11,9 @@
 			"!**/*.md",
 			"!**/skills-lock.json",
 			"!**/*.css",
+			"!**/*.svelte",
+			"!**/.svelte-kit",
+			"!**/.svelte-check",
 			"!**/.agents",
 			"!**/.claude"
 		]
