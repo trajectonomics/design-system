@@ -16,8 +16,8 @@ function tokenField(roleName: string): string {
 	return `${TOKENS_FIELD}.${roleName}`
 }
 
-function assertThemeName(name: unknown): void {
-	if (typeof name === "string" && name.trim().length > 0) return
+function validateThemeName(name: unknown): string {
+	if (typeof name === "string" && name.trim().length > 0) return name.trim()
 	throw new ThemeError(
 		ThemeErrorCode.INVALID_THEME_NAME,
 		"name",
@@ -58,35 +58,37 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 }
 
 /** Validates a Theme against the Contract, returning its normalized values. */
-export function validateTheme(input: ThemeInput): ThemeInput {
-	assertThemeName(input.name)
-	if (!isRecord(input.tokens)) {
+export function validateTheme(input: unknown): ThemeInput {
+	const candidate = isRecord(input) ? input : undefined
+	const name = validateThemeName(candidate?.["name"])
+	const tokens = candidate?.["tokens"]
+	if (!isRecord(tokens)) {
 		throw new ThemeError(
-			ThemeErrorCode.MISSING_CONTRACT_ROLE,
+			ThemeErrorCode.MISSING_TOKENS_SECTION,
 			TOKENS_FIELD,
 			"A Theme must have a tokens section.",
 		)
 	}
-	const tokens: Record<string, string> = {}
+	const validated: Record<string, string> = {}
 	for (const role of semanticTokenContract.roles) {
 		const field = tokenField(role.name)
-		if (!Object.hasOwn(input.tokens, role.name)) {
+		if (!Object.hasOwn(tokens, role.name)) {
 			throw new ThemeError(
 				ThemeErrorCode.MISSING_CONTRACT_ROLE,
 				field,
 				`Theme is missing the Contract role "${role.name}".`,
 			)
 		}
-		tokens[role.name] = assertTokenValue(role, input.tokens[role.name], field)
+		validated[role.name] = assertTokenValue(role, tokens[role.name], field)
 	}
-	for (const name of Object.keys(input.tokens)) {
-		if (!ROLE_NAMES.has(name)) {
+	for (const roleName of Object.keys(tokens)) {
+		if (!ROLE_NAMES.has(roleName)) {
 			throw new ThemeError(
 				ThemeErrorCode.UNKNOWN_CONTRACT_ROLE,
-				tokenField(name),
-				`"${name}" is not a role in the Semantic Token Contract.`,
+				tokenField(roleName),
+				`"${roleName}" is not a role in the Semantic Token Contract.`,
 			)
 		}
 	}
-	return { name: input.name, tokens }
+	return { name, tokens: validated }
 }

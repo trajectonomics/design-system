@@ -1,4 +1,4 @@
-/** Input for defining a Theme: its plain string name and a literal value for every Contract role. */
+/** Input for defining a Theme: a name and tokens; a full Theme also fits, but its version is ignored. */
 export interface ThemeInput {
 	readonly name: string
 	readonly tokens: Readonly<Record<string, string>>

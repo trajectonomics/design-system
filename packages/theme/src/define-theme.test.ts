@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { semanticTokenContract } from "@trajectonomics/design-system"
-import { defineTheme } from "./index"
+import { defineTheme, type Theme } from "./index"
 import { tokensForContract } from "./theme.support"
 
 describe("defineTheme", () => {
@@ -10,6 +10,11 @@ describe("defineTheme", () => {
 		expect(theme.name).toBe("brand-ocean")
 		expect(theme.contractVersion).toBe(semanticTokenContract.version)
 		expect(theme.tokens).toEqual(tokens)
+	})
+
+	it("trims the Theme name", () => {
+		const theme = defineTheme({ name: "  brand-ocean  ", tokens: tokensForContract() })
+		expect(theme.name).toBe("brand-ocean")
 	})
 
 	it("returns a frozen Theme with frozen tokens", () => {
@@ -28,7 +33,7 @@ describe("defineTheme", () => {
 
 	it("reads the Contract version instead of assuming the input's version", () => {
 		const tokens = tokensForContract()
-		const input = {
+		const input: Theme = {
 			name: "brand-future",
 			contractVersion: semanticTokenContract.version + 1,
 			tokens,

@@ -23,14 +23,19 @@ checked path: it validates the input against the Contract at runtime and returns
 Names are never a union type, so adding a Theme never requires a type change, and components never
 switch on a Theme name.
 
-**Validation rules.** `defineTheme` rejects, each with its own `DomainErrorCode` and a `field` that
+**Validation rules.** `defineTheme` rejects, each with its own `ThemeErrorCode` and a `field` that
 mirrors the caller's input path:
 
-1. a missing Semantic Token,
-2. an unknown Semantic Token (the Contract is closed),
-3. a value of the wrong token type (colour, length, font family),
-4. a value containing characters that could break out of a CSS declaration (`;`, `}`, `url(`),
-5. an invalid Theme name (empty).
+1. a missing or non-object `tokens` section,
+2. a missing Semantic Token,
+3. an unknown Semantic Token (the Contract is closed),
+4. a value of the wrong token type (colour, length, font family),
+5. a value containing characters that could break out of a CSS declaration (`;`, `}`, `url(`),
+6. an invalid Theme name (empty).
+
+`ThemeError` lives in `theme` and mirrors core's `DomainError` shape (`code` + `field`), because
+validation is theme behaviour and core must not depend on it. `UNKNOWN_CONTRACT_ROLE` keeps the same
+code string in both enums because it is the same rule.
 
 Built-in Themes are ordinary Themes: `light` and `dark` go through the same Theme resolution path and
 have no special status.
@@ -47,8 +52,11 @@ Token name (for example `--ds-color-primary`).
 
 **The Semantic Token Contract is closed and versioned.** Only this repository can add or remove
 Semantic Tokens; consumers cannot extend the Contract. The Contract carries a version number so that
-stored or generated Themes can be migrated when the Contract changes. It starts as the shadcn role
-set under our dotted names:
+stored or generated Themes can be migrated when the Contract changes. `defineTheme` reads
+`semanticTokenContract.version` on every call and records it on the returned Theme; a
+`contractVersion` carried by a full Theme passed as input is ignored. Migrating stored Themes from
+an older Contract remains out of scope for this slice. The Contract starts as the shadcn role set
+under our dotted names:
 
 - `color.background`, `color.foreground`
 - `color.card`, `color.card.foreground`

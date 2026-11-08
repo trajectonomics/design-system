@@ -3,7 +3,7 @@ import { semanticTokenContract } from "@trajectonomics/design-system"
 import type { ThemeInput } from "./theme-input"
 import { validateTheme } from "./validation"
 
-/** Defines a Theme from a name and a literal value for every role in the Semantic Token Contract. */
+/** The checked factory for Themes: validates raw Theme data against the Semantic Token Contract. */
 export function defineTheme(input: ThemeInput): Theme {
 	const validated = validateTheme(input)
 	return Object.freeze({

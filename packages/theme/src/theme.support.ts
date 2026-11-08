@@ -1,14 +1,18 @@
 import { expect } from "bun:test"
-import { semanticTokenContract } from "@trajectonomics/design-system"
+import { semanticTokenContract, type TokenType } from "@trajectonomics/design-system"
 import { ThemeError, type ThemeErrorCode } from "./index"
+
+const LITERAL_BY_TYPE: Readonly<Record<TokenType, string>> = {
+	color: "#123456",
+	length: "1rem",
+	fontFamily: "Inter, sans-serif",
+}
 
 /** Literal values for every Contract role, built without using core's built-in Themes. */
 export function tokensForContract(): Record<string, string> {
 	const tokens: Record<string, string> = {}
 	for (const role of semanticTokenContract.roles) {
-		if (role.type === "color") tokens[role.name] = "#123456"
-		else if (role.type === "length") tokens[role.name] = "1rem"
-		else tokens[role.name] = "Inter, sans-serif"
+		tokens[role.name] = LITERAL_BY_TYPE[role.type]
 	}
 	return tokens
 }
