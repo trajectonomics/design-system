@@ -11,7 +11,7 @@ export interface UseThemeOptions {
 	readonly theme?: Theme
 }
 
-/** Reads and changes the active Theme by applying it to an element. */
+/** The reactive state and setter returned by `useTheme`. */
 export interface ThemeHook {
 	/** The Theme applied by the most recent `setTheme` call. */
 	readonly current: Theme | undefined
@@ -36,7 +36,7 @@ function createStyleInjector(): (css: string) => void {
 	}
 }
 
-/** Applies any valid Theme to an element through its `data-theme` attribute and Theme CSS. */
+/** A Hook for reading and setting the active Theme on an element. */
 export function useTheme(options: UseThemeOptions = {}): ThemeHook {
 	let current = $state.raw<Theme | undefined>(undefined)
 	let activeElement: Element | undefined

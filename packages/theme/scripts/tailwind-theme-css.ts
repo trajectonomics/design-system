@@ -9,7 +9,7 @@ export function tailwindColorName(roleName: string): string {
 export function buildTailwindThemeCss(): string {
 	const mappings = semanticTokenContract.roles.map((role) => {
 		const variable = `--ds-${role.name.replaceAll(".", "-")}`
-		return `  --color-${tailwindColorName(role.name)}: var(${variable});`
+		return `	--color-${tailwindColorName(role.name)}: var(${variable});`
 	})
 	return `@theme inline {\n${mappings.join("\n")}\n}\n`
 }

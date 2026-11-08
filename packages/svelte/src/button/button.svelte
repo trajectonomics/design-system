@@ -1,6 +1,9 @@
 <script lang="ts" module>
 	import type { ButtonProps as BaseButtonProps } from "./button.svelte.js"
 
+	// svelte2tsx drops imported types used only by $props(), so the public props
+	// type is re-declared here to keep the generated .d.ts valid for consumers.
+	/** Props for `Button`, covering both the button and anchor forms. */
 	export interface ButtonProps extends BaseButtonProps {}
 </script>
 

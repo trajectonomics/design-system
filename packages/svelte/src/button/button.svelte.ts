@@ -31,7 +31,7 @@ export interface ButtonVariantOptions {
 	readonly size?: ButtonSize
 }
 
-/** Adds an element ref binding to an HTML attribute type. */
+/** An HTML attribute type with an element ref binding. */
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null }
 
 /** Props for `Button`, covering both the button and anchor forms. */
@@ -41,7 +41,7 @@ export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
 		size?: ButtonSize
 	}
 
-/** Builds the Tailwind classes for a `Button` variant and size. */
+/** The Tailwind class list for a `Button` variant and size. */
 export function buttonVariants(options: ButtonVariantOptions = {}): string {
 	const { variant = "default", size = "default" } = options
 	return [BASE, VARIANTS[variant], SIZES[size]].join(" ")

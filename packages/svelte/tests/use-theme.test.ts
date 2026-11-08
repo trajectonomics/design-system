@@ -61,6 +61,7 @@ describe("useTheme", () => {
 		expect(nested.getAttribute("data-theme")).toBe("dark")
 		expect(document.documentElement.hasAttribute("data-theme")).toBe(false)
 		expect(document.body.hasAttribute("data-theme")).toBe(false)
+		expect(themeStyles()[0]?.textContent).toContain("--ds-color-primary: #e5e5e5;")
 	})
 
 	it("replaces the injected CSS and the attribute when the Theme changes", () => {
