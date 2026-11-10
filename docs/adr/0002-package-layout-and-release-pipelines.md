@@ -88,3 +88,9 @@ repo.
   workflow must be mirrored here until the shared multi-package pipeline replaces these callers.
 - Every pull request runs every package's checks, which is slower than path-filtered checks but
   catches cross-package breakage before merge.
+
+## Corrections
+
+- 2026-11-10: the Decision text says the package "has never been on npm". That was wrong:
+  `@trajectonomics/design-system` already exists on npm (`0.1.0-alpha.0`, published by hand), so
+  only `-theme` and `-svelte` need a first publish. All three still need a Trusted Publisher entry.

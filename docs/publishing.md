@@ -42,9 +42,10 @@ documented special case. See ADR 0002.
    URL within five minutes; on a headless machine run it as `BROWSER=none npm login --auth-type=web`.
    Verify with `npm whoami`.
 2. Confirm you belong to the `@trajectonomics` npm org: `npm org ls trajectonomics <your-npm-user>`.
-3. **Check the names are free**. Each command should answer 404:
+3. **Check which names exist.** `@trajectonomics/design-system` (`packages/core`) is already on npm
+   (`0.1.0-alpha.0`, published by hand earlier), so it needs no first publish. The other two should
+   answer 404:
    ```bash
-   npm view @trajectonomics/design-system
    npm view @trajectonomics/design-system-theme
    npm view @trajectonomics/design-system-svelte
    ```
@@ -52,27 +53,18 @@ documented special case. See ADR 0002.
    ```bash
    bun run build
    ```
-5. **First publish, in dependency order: core, then theme, then svelte.** npm cannot attach a
-   Trusted Publisher to a package that does not exist yet, so the maintainer publishes the first
-   version by hand. Ask the version script what the pipeline would publish, bump the working tree
+5. **First publish of `theme`, then `svelte`** (`core` is already on npm; skip its block). npm cannot
+   attach a Trusted Publisher to a package that does not exist yet, so the maintainer publishes the
+   first version by hand. `npm pkg set` is used instead of `npm version` because `npm version` fails
+   on the `workspace:*` devDependencies. Ask the version script what the pipeline would publish, bump the working tree
    only (never commit it), publish under the `alpha` tag without provenance (it needs CI), approve
    the 2FA URL npm prints, then discard the bump.
-
-   `core`:
-   ```bash
-   VERSION=$(bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel alpha)
-   cd packages/core
-   npm version "$VERSION" --no-git-tag-version
-   npm publish --access public --tag alpha --provenance=false
-   git checkout package.json
-   cd ../..
-   ```
 
    `theme`:
    ```bash
    VERSION=$(bun scripts/version.ts --package-folder packages/theme --tag-prefix theme-v --channel alpha)
    cd packages/theme
-   npm version "$VERSION" --no-git-tag-version
+   npm pkg set version="$VERSION"
    npm publish --access public --tag alpha --provenance=false
    git checkout package.json
    cd ../..
@@ -82,15 +74,14 @@ documented special case. See ADR 0002.
    ```bash
    VERSION=$(bun scripts/version.ts --package-folder packages/svelte --tag-prefix svelte-v --channel alpha)
    cd packages/svelte
-   npm version "$VERSION" --no-git-tag-version
+   npm pkg set version="$VERSION"
    npm publish --access public --tag alpha --provenance=false
    git checkout package.json
    cd ../..
    ```
 
-   Confirm each package exists and its `alpha` tag points at the first version:
+   Confirm each new package exists and its `alpha` tag points at the first version:
    ```bash
-   npm view @trajectonomics/design-system dist-tags
    npm view @trajectonomics/design-system-theme dist-tags
    npm view @trajectonomics/design-system-svelte dist-tags
    ```
