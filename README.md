@@ -16,7 +16,7 @@ This repository is a private Bun workspace with three published packages and one
 | Package | Folder | What it gives you |
 | --- | --- | --- |
 | [`@trajectonomics/design-system`](./packages/core) | `packages/core` | Pure data: Primitive Tokens, Semantic Tokens, the Semantic Token Contract and the built-in `light` and `dark` Themes. No dependencies. |
-| [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind v4 theme stylesheet. |
+| [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind Theme Stylesheet. |
 | [`@trajectonomics/design-system-svelte`](./packages/svelte) | `packages/svelte` | Svelte 5 components and Hooks, with one compiled stylesheet. Consumers do not need Tailwind. |
 | Storybook (private) | [`apps/storybook`](./apps/storybook) | Component previews with a Theme switcher and the accessibility addon. Never published. |
 
@@ -94,8 +94,8 @@ bun add @trajectonomics/design-system @trajectonomics/design-system-theme
 
 ### The stylesheets to import
 
-With Tailwind v4, import Tailwind first, then the Themes you offer and the theme stylesheet. This
-is the whole setup, and the framework-free fixture in `fixtures/web` builds from exactly these
+With Tailwind v4, import Tailwind first, then the Themes you offer and the Tailwind Theme Stylesheet.
+This is the whole setup, and the framework-free fixture in `fixtures/web` builds from exactly these
 lines:
 
 ```css
@@ -139,6 +139,9 @@ flash of the wrong Theme:
 
 `data-theme` can sit on any element, so a nested element can use another Theme.
 
+When you render on the server, set `data-theme` on the `<html>` you return and in the markup the
+client hydrates: the CSS is static, so no script has to run before the first paint.
+
 If your app follows the operating system instead of a stored choice, read `prefers-color-scheme` in
 the same inline script:
 
@@ -174,13 +177,13 @@ every Tailwind consumer. Add this descendant-safe variant to your own CSS after 
 
 ### Compatibility
 
-The variable names, the `data-theme` selector, the colour names in `tailwind.css` and the package's
-CSS export paths are the **Web Consumer Contract**
+The variable names, the `data-theme` selector, the Tailwind Theme Stylesheet's colour names and the
+package's CSS export paths are the **Web Consumer Contract**
 ([ADR 0005](./docs/adr/0005-web-consumer-contract.md)). Adding a Semantic Token Role is additive (a
-minor release); renaming or removing a role, changing the `--ds-` prefix or the selector, or renaming
-a CSS export is breaking. The `core` and `defineTheme` surface is stricter still: adding a role is
-breaking there, so it ships with a Semantic Token Contract version bump, a `core` release first and
-updated `theme` and `svelte` peer ranges.
+minor release); renaming or removing one, changing the `--ds-` prefix or the selector, or renaming a
+CSS export is breaking. On the `core` and `defineTheme` side a new role is breaking, so it ships
+with a Semantic Token Contract version bump, a `core` release first and updated `theme` and `svelte`
+peer ranges.
 
 ## Svelte components and Hooks
 
