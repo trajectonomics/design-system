@@ -22,8 +22,9 @@ Each published package has its own caller of the reusable `.github/workflows/rel
 - Workflow filenames are part of the Trusted Publisher contract (see ADR 0002). Do not rename them.
 
 Before publishing, a dry run (Actions → the package's **Release …** workflow → Run workflow → enable
-`dry-run`) runs the checks and prints the version the pipeline would publish without publishing or
-tagging. You can run the same plan locally:
+`dry-run`) runs the checks, applies the version it would publish to the checkout, asserts the packed
+manifest carries no `workspace:` range in `dependencies` or `peerDependencies`, and prints the
+tarball's file list, all without publishing or tagging. You can run the same plan locally:
 
 ```bash
 bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel alpha --dry-run
@@ -31,7 +32,7 @@ bun scripts/version.ts --package-folder packages/theme --tag-prefix theme-v --ch
 bun scripts/version.ts --package-folder packages/svelte --tag-prefix svelte-v --channel alpha --dry-run
 ```
 
-CI runs the core dry run on every pull request.
+CI runs every package's dry run on every pull request.
 
 Until `trajectonomics/cicd`'s shared multi-package pipeline replaces these workflows, this repo is a
 documented special case. See ADR 0002.

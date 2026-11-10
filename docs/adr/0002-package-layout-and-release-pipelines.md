@@ -94,3 +94,10 @@ repo.
 - 2026-11-10: the Decision text says the package "has never been on npm". That was wrong:
   `@trajectonomics/design-system` already exists on npm (`0.1.0-alpha.0`, published by hand), so
   only `-theme` and `-svelte` need a first publish. All three still need a Trusted Publisher entry.
+
+## Amendment: peer ranges
+
+- 2026-11-10: `theme` and `svelte` declare their peer dependencies as `^0.1.0-alpha.0`, so an alpha
+  `0.1.0-alpha.N` resolves and a stable `0.1.x` still does, while `0.2.0-*` does not. Known semver
+  limit: a prerelease on a later patch (`0.1.1-alpha.0`) does not match; alpha consumers then use
+  their package manager's override. The range is hand-edited, not tied to the package version.
