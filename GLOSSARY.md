@@ -34,6 +34,15 @@ Theme CSS that ships as ready-to-import files for the built-in Themes. It comes 
 ### Tailwind Theme Stylesheet
 A stylesheet that maps Tailwind utility colours onto Theme CSS, so utilities follow the active Theme.
 
+### Web Consumer Contract
+The stable surface a non-Svelte app may depend on: the `--ds-` custom properties, the `data-theme` selector that scopes them, the Tailwind Theme Stylesheet's colour names and the `theme` package's CSS exports. A change to it follows the per-surface compatibility rule in ADR 0005.
+
+### Brand Asset
+A static file that carries the Trajectonomics identity for consumers: the logo mark, the wordmark or a Favicon Set file. Brand Assets are not Design Tokens, and the art for them comes from the owner.
+
+### Favicon Set
+The Brand Assets a site needs for its browser and home-screen icons: an SVG favicon, an ICO, an Apple touch icon and 192 and 512 pixel PNGs.
+
 ### Hook
 A reactive helper function, named `use*`, that the Svelte package exports for consumers (for example `useTheme`). A Hook exists only when a concrete component or consumer need requires it. Hooks belong to the Svelte package and never to the pure core.
 
