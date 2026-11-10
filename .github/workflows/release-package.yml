@@ -17,8 +17,9 @@ name: Release package
 #   manual dispatch -> stable (dist-tag "latest"): tags <prefix>X.Y.Z and creates
 #                      a GitHub release. Run it from main.
 #
-# A caller can pass dry-run: true (CI does this on pull requests) to compute and
-# print the version without publishing or tagging.
+# A caller can pass dry-run: true (CI does this on pull requests) to run the same
+# npm a real publish uses, apply the computed version to the disposable checkout,
+# assert the packed manifest and pack the tarball, without publishing or tagging.
 #
 # Callers own the permissions: a real release needs contents: write and
 # id-token: write; a dry-run caller needs only contents: read.
@@ -123,17 +124,39 @@ jobs:
             echo "Dry run: would publish $PACKAGE_FOLDER version $VERSION ($CHANNEL)."
           fi
 
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; setup-node 22 ships npm 10.x.
+      # A dry run upgrades too, so the tarball it packs is the one npm ships.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@^11.5.1
+
       - name: Apply version
-        if: inputs.dry-run == false
+        # `npm pkg set` edits the manifest only. `npm version` resolves the whole
+        # workspace, so it fails on the `workspace:*` devDependencies. On a dry
+        # run this version lives in the disposable checkout and is never pushed.
+        if: steps.version.outputs.version != ''
         working-directory: ${{ inputs.package-folder }}
         env:
           VERSION: ${{ steps.version.outputs.version }}
-        run: npm version "$VERSION" --no-git-tag-version
+        run: npm pkg set version="$VERSION"
 
-      # Trusted publishing (OIDC) needs npm >= 11.5.1; setup-node 22 ships npm 10.x.
-      - name: Upgrade npm for trusted publishing
-        if: inputs.dry-run == false
-        run: npm install -g npm@^11.5.1
+      - name: Assert the packed manifest is publishable
+        # The tarball's manifest is what a consumer installs. A `workspace:` range
+        # in dependencies or peerDependencies cannot resolve there; devDependencies
+        # are never installed from the registry, so they may keep it.
+        if: steps.version.outputs.version != ''
+        working-directory: ${{ inputs.package-folder }}
+        env:
+          PACK_DIR: ${{ runner.temp }}/pack
+        run: |
+          mkdir -p "$PACK_DIR"
+          TARBALL=$(npm pack --json --pack-destination "$PACK_DIR" | jq -r '.[0].filename')
+          tar -xzf "$PACK_DIR/$TARBALL" -C "$PACK_DIR" package/package.json
+          bun "$GITHUB_WORKSPACE/scripts/assert-publishable-manifest.ts" "$PACK_DIR/package/package.json"
+
+      - name: Publish dry run
+        if: inputs.dry-run == true && steps.version.outputs.version != ''
+        working-directory: ${{ inputs.package-folder }}
+        run: npm publish --dry-run --provenance=false
 
       - name: Publish to npm
         if: inputs.dry-run == false

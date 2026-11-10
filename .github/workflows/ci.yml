@@ -51,16 +51,31 @@ jobs:
       - name: Pack the packages and verify a consumer app
         run: bun run smoke
 
-  # Exercises the release workflow's planning path without publishing or tagging.
-  # It is path-independent on purpose: an unrelated pull request still proves the
-  # reusable workflow resolves, installs and computes (or reports no) version.
+  # Exercises every package's release path without publishing or tagging: it
+  # computes (or reports nothing for) the version, applies it, asserts the packed
+  # manifest carries no workspace: range in dependencies or peers, and packs the
+  # tarball. Path-independent on purpose: an unrelated pull request still proves
+  # the reusable workflow works for every package.
   release-dry-run:
-    name: Release dry run (core)
+    name: Release dry run (${{ matrix.package }})
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: core
+            folder: packages/core
+            tag-prefix: core-v
+          - package: theme
+            folder: packages/theme
+            tag-prefix: theme-v
+          - package: svelte
+            folder: packages/svelte
+            tag-prefix: svelte-v
     uses: ./.github/workflows/release-package.yml
     with:
-      package-folder: packages/core
-      tag-prefix: core-v
+      package-folder: ${{ matrix.folder }}
+      tag-prefix: ${{ matrix.tag-prefix }}
       dry-run: true

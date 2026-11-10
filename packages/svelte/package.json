@@ -46,8 +46,8 @@
 		"lint:package": "test -s dist/style.css && publint --strict && attw --pack . --profile esm-only --ignore-rules internal-resolution-error --exclude-entrypoints ./style.css"
 	},
 	"peerDependencies": {
-		"@trajectonomics/design-system": "^0.1.0",
-		"@trajectonomics/design-system-theme": "^0.1.0",
+		"@trajectonomics/design-system": "^0.1.0-alpha.0",
+		"@trajectonomics/design-system-theme": "^0.1.0-alpha.0",
 		"svelte": "^5.0.0"
 	},
 	"devDependencies": {
