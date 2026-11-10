@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Design system web consumer fixture</title>
+		<script>
+			const stored = localStorage.getItem("theme")
+			document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light")
+		</script>
+	</head>
+	<body>
+		<main class="bg-background text-foreground">
+			<h1 class="text-primary">Framework-free consumer</h1>
+			<button id="toggle-theme" type="button" class="bg-primary text-primary-foreground border border-border ring-2 ring-ring">
+				Toggle Theme
+			</button>
+			<p class="dark:bg-card dark:text-card-foreground">A card-coloured paragraph in dark.</p>
+		</main>
+		<script type="module" src="/src/main.ts"></script>
+	</body>
+</html>

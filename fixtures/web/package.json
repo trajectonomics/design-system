@@ -1,0 +1,18 @@
+{
+	"name": "trajectonomics-design-system-web-fixture",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"check": "tsc -p tsconfig.json && bun run build && bun test",
+		"build": "vite build",
+		"test": "bun test"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.3.5",
+		"@types/bun": "^1.4.4",
+		"@types/node": "^24.0.0",
+		"tailwindcss": "^4.3.5",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.6"
+	}
+}

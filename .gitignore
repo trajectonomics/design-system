@@ -11,4 +11,4 @@ coverage/
 .svelte-check/
 storybook-static/
 artifacts/
-fixtures/consumer/bun.lock
+fixtures/*/bun.lock

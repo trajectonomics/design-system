@@ -4,33 +4,70 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK="$(mktemp -d)"
 ARTIFACTS="$WORK/artifacts"
-FIXTURE="$WORK/fixture"
 trap 'rm -rf "$WORK"' EXIT
 
-for package in core theme svelte; do
+# Fixture app -> the packed packages it installs. Every published package it
+# does not list must stay out of its node_modules: the web fixture proves a
+# non-Svelte consumer never pulls Svelte in.
+FIXTURES=(
+	"consumer:core theme svelte"
+	"web:core theme"
+)
+PACKAGES=(core theme svelte)
+
+package_name() {
+	case "$1" in
+		core) echo "@trajectonomics/design-system" ;;
+		theme) echo "@trajectonomics/design-system-theme" ;;
+		svelte) echo "@trajectonomics/design-system-svelte" ;;
+		*)
+			echo "unknown package: $1" >&2
+			return 1
+			;;
+	esac
+}
+
+for package in "${PACKAGES[@]}"; do
 	(cd "$ROOT/packages/$package" && bun run build)
 done
 
 mkdir -p "$ARTIFACTS"
-for package in core theme svelte; do
+for package in "${PACKAGES[@]}"; do
 	(cd "$ROOT/packages/$package" && bun pm pack --filename "$ARTIFACTS/$package.tgz" --quiet)
 done
 
-mkdir -p "$FIXTURE"
-cp -R "$ROOT/fixtures/consumer/." "$FIXTURE/"
-cd "$FIXTURE"
+for entry in "${FIXTURES[@]}"; do
+	name="${entry%%:*}"
+	packages="${entry#*:}"
+	fixture="$WORK/$name"
 
-bun add "$ARTIFACTS/core.tgz" "$ARTIFACTS/theme.tgz" "$ARTIFACTS/svelte.tgz"
+	mkdir -p "$fixture"
+	cp -R "$ROOT/fixtures/$name/." "$fixture/"
 
-bun -e '
+	tarballs=()
+	expected=""
+	for package in $packages; do
+		tarballs+=("$ARTIFACTS/$package.tgz")
+		expected+="$(package_name "$package") "
+	done
+
+	forbidden=""
+	for package in "${PACKAGES[@]}"; do
+		if [[ " $packages " != *" $package "* ]]; then
+			forbidden+="$(package_name "$package") "
+		fi
+	done
+
+	(
+		cd "$fixture"
+		bun add "${tarballs[@]}"
+		FIXTURE="$name" EXPECTED="$expected" FORBIDDEN="$forbidden" bun -e '
 const fs = require("node:fs");
 const path = require("node:path");
+const split = (value) => (value ?? "").split(/\s+/).filter(Boolean);
 const manifest = JSON.parse(fs.readFileSync("package.json", "utf8"));
-for (const name of [
-  "@trajectonomics/design-system",
-  "@trajectonomics/design-system-theme",
-  "@trajectonomics/design-system-svelte",
-]) {
+
+for (const name of split(process.env.EXPECTED)) {
   const spec = manifest.dependencies?.[name];
   if (typeof spec !== "string" || !spec.endsWith(".tgz")) {
     throw new Error(`${name} was not installed from a packed tarball: ${spec}`);
@@ -44,7 +81,16 @@ for (const name of [
     throw new Error(`${name} resolved to workspace source: ${real}`);
   }
 }
-console.log("Installed the three packed tarballs into the fixture app.");
-'
 
-bun run check
+for (const name of split(process.env.FORBIDDEN)) {
+  const installed = path.join("node_modules", ...name.split("/"));
+  if (fs.existsSync(installed)) {
+    throw new Error(`${name} is installed, but the ${process.env.FIXTURE} fixture must not pull it in`);
+  }
+}
+
+console.log(`Installed ${process.env.EXPECTED}from packed tarballs into the ${process.env.FIXTURE} fixture.`);
+'
+		bun run check
+	)
+done

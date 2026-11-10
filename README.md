@@ -16,7 +16,7 @@ This repository is a private Bun workspace with three published packages and one
 | Package | Folder | What it gives you |
 | --- | --- | --- |
 | [`@trajectonomics/design-system`](./packages/core) | `packages/core` | Pure data: Primitive Tokens, Semantic Tokens, the Semantic Token Contract and the built-in `light` and `dark` Themes. No dependencies. |
-| [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind v4 theme stylesheet. |
+| [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind Theme Stylesheet. |
 | [`@trajectonomics/design-system-svelte`](./packages/svelte) | `packages/svelte` | Svelte 5 components and Hooks, with one compiled stylesheet. Consumers do not need Tailwind. |
 | Storybook (private) | [`apps/storybook`](./apps/storybook) | Component previews with a Theme switcher and the accessibility addon. Never published. |
 
@@ -83,15 +83,107 @@ const theme = defineTheme({ name: "brand-ocean", tokens: { /* every Contract rol
 const css = themeToCss(theme) // [data-theme="brand-ocean"] { --ds-color-primary: ...; }
 ```
 
-### Tailwind
+## Web apps without Svelte
 
-If your app uses Tailwind v4, import the theme stylesheet after Tailwind. Utility colours such as
-`bg-primary` and `text-primary-foreground` then follow the active Theme, including generated Themes:
+`core` and `theme` have no Svelte dependency, so a plain web app (Vite, Astro, React, Fumadocs) uses
+the same CSS. Install the two packages:
+
+```bash
+bun add @trajectonomics/design-system @trajectonomics/design-system-theme
+```
+
+### The stylesheets to import
+
+With Tailwind v4, import Tailwind first, then the Themes you offer and the Tailwind Theme Stylesheet.
+This is the whole setup, and the framework-free fixture in `fixtures/web` builds from exactly these
+lines:
 
 ```css
 @import "tailwindcss";
+@import "@trajectonomics/design-system-theme/themes/light.css";
+@import "@trajectonomics/design-system-theme/themes/dark.css";
 @import "@trajectonomics/design-system-theme/tailwind.css";
 ```
+
+`tailwind.css` is a Tailwind v4 `@theme inline` stylesheet, so utility colours such as `bg-primary`,
+`text-primary-foreground`, `border-border` and `ring-ring` follow the active Theme, including
+generated Themes.
+
+Without Tailwind, import the Theme CSS only and use the custom properties directly. They are `--ds-`
+plus the Semantic Token Role name with dots replaced by dashes, so `color.primary.foreground` is
+`--ds-color-primary-foreground`:
+
+```css
+@import "@trajectonomics/design-system-theme/themes/light.css";
+@import "@trajectonomics/design-system-theme/themes/dark.css";
+
+.card {
+  background: var(--ds-color-card);
+  color: var(--ds-color-card-foreground);
+  border: 1px solid var(--ds-color-border);
+}
+```
+
+### Select a Theme before first paint
+
+No Theme is the default (the Glossary forbids giving one a special status), so a page without
+`data-theme` is unstyled. Set the attribute inline in `<head>`, before the first paint, to avoid a
+flash of the wrong Theme:
+
+```html
+<script>
+  const stored = localStorage.getItem("theme")
+  document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light")
+</script>
+```
+
+`data-theme` can sit on any element, so a nested element can use another Theme.
+
+When you render on the server, set `data-theme` on the `<html>` you return and in the markup the
+client hydrates: the CSS is static, so no script has to run before the first paint.
+
+If your app follows the operating system instead of a stored choice, read `prefers-color-scheme` in
+the same inline script:
+
+```html
+<script>
+  const dark = window.matchMedia("(prefers-color-scheme: dark)").matches
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light")
+</script>
+```
+
+If your UI library toggles a `.dark` class (the shadcn convention), mirror that class onto the
+attribute. The design system reads `data-theme` only, never the class:
+
+```typescript
+const root = document.documentElement
+function syncTheme(): void {
+  root.setAttribute("data-theme", root.classList.contains("dark") ? "dark" : "light")
+}
+new MutationObserver(syncTheme).observe(root, { attributes: true, attributeFilter: ["class"] })
+syncTheme()
+```
+
+### `dark:` utilities
+
+`tailwind.css` ships no `dark` variant, because shipping one would change `dark:` behaviour for
+every Tailwind consumer. Add this descendant-safe variant to your own CSS after the imports:
+
+```css
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+```
+
+`dark:` utilities then follow `data-theme`, on any element.
+
+### Compatibility
+
+The variable names, the `data-theme` selector, the Tailwind Theme Stylesheet's colour names and the
+package's CSS export paths are the **Web Consumer Contract**
+([ADR 0005](./docs/adr/0005-web-consumer-contract.md)). Adding a Semantic Token Role is additive (a
+minor release); renaming or removing one, changing the `--ds-` prefix or the selector, or renaming a
+CSS export is breaking. On the `core` and `defineTheme` side a new role is breaking, so it ships
+with a Semantic Token Contract version bump, a `core` release first and updated `theme` and `svelte`
+peer ranges.
 
 ## Svelte components and Hooks
 
@@ -133,7 +225,8 @@ packages/
 apps/
 └── storybook/  # private Storybook preview
 fixtures/
-└── consumer/   # private Vite + Svelte app used by the consumer smoke test
+├── consumer/   # private Vite + Svelte app used by the consumer smoke test
+└── web/        # private Vite + Tailwind v4 app, no Svelte, for the same smoke test
 ```
 
 ## Development
@@ -156,12 +249,16 @@ bun run format
 cd apps/storybook
 bun run dev
 
-# Pack the real tarballs and verify a consumer Vite + Svelte app
+# Pack the real tarballs and verify the consumer fixture apps
 bun run smoke
 ```
 
-The consumer smoke test packs `core`, `theme` and `svelte`, installs the tarballs into the fixture
-app, then runs `svelte-check`, a Theme-switch test and a production build. CI runs it as its own job.
+The consumer smoke test packs `core`, `theme` and `svelte`, installs the tarballs into both fixture
+apps, then runs each app's own checks. The Svelte app runs `svelte-check`, a Theme-switch test and a
+production build; the framework-free app builds with Tailwind v4 and asserts the compiled CSS: the
+`--ds-` variables of both Themes, the resolved `bg-primary` utility and the `dark:` variant. It also
+fails if Svelte is installed, so the non-Svelte consumer stays provable. CI runs the smoke as its own
+job.
 
 TypeScript and test runners are split by package: `core` and `theme` use TypeScript 7 and `bun test`;
 `svelte` and Storybook pin TypeScript 6 locally and use `svelte-check`, Vitest and Prettier for
