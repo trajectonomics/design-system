@@ -19,6 +19,9 @@ Each published package has its own caller of the reusable `.github/workflows/rel
   Package `version` is never edited by hand.
 - A push to `main` publishes an alpha (dist-tag `alpha`); a manual run from `main` publishes a stable
   version (dist-tag `latest`), creates the `<prefix>X.Y.Z` tag and the GitHub release.
+- A package with only alpha releases has no `latest` dist-tag until its first stable release. That is
+  the state `theme` and `svelte` start in; `core` already carries `latest` (`0.1.0-alpha.0`) from its
+  hand publish.
 - Workflow filenames are part of the Trusted Publisher contract (see ADR 0002). Do not rename them.
 
 Before publishing, a dry run (Actions → the package's **Release …** workflow → Run workflow → enable
