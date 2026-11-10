@@ -1,0 +1,76 @@
+# ADR 0005: Web Consumer Contract
+
+## Status
+
+Accepted
+
+## Context
+
+`trajectonomics/docs` (Fumadocs, Astro, React, Tailwind v4) is the first consumer that is not
+Svelte, and the marketing site follows. The `theme` package already ships prebuilt Theme CSS
+(`themes/light.css`, `themes/dark.css`) and a Tailwind v4 stylesheet (`tailwind.css`), so the web
+preset exists. What was missing is a written statement of which parts a non-Svelte app may depend
+on, how a Theme is selected, and what a release means for each surface. Brand Assets (logo,
+wordmark, Favicon Set) do not exist anywhere in the organisation yet.
+
+## Decision
+
+**The web preset is the existing CSS.** The prebuilt Theme CSS and the Tailwind Theme Stylesheet
+are the preset. There is no JS or Tailwind "preset" export: Tailwind v4 has no JS presets, and a
+CSS stylesheet is its v4 form. A consumer maps `--ds-*` to its own variables and owns its layout;
+for example the Fumadocs `--fd-*` mapping stays in `trajectonomics/docs`.
+
+**The Web Consumer Contract is a stable surface.** It is the set of:
+
+- the `--ds-` custom properties, named `--ds-` plus the Semantic Token Role name with dots replaced
+  by dashes (ADR 0003 defines the rule; this ADR only makes its output public API),
+- the `[data-theme="<name>"]` selector that scopes them,
+- the Tailwind Theme Stylesheet's utility colour names,
+- the CSS sub-path exports of the `theme` package.
+
+**Selection is explicit.** No Theme is special (see the Glossary), so the prebuilt CSS defines no
+default Theme. A consumer sets `data-theme` on `<html>` or on any element, before first paint to
+avoid a flash. A page without `data-theme` is unstyled. The `theme` package gets no runtime helper
+for this: Hooks belong to the Svelte package. The README documents an inline snippet, how to sync a
+`.dark` class or `prefers-color-scheme`, and a copy-paste `dark:` variant tied to `data-theme`. The
+Tailwind stylesheet itself ships no `dark` variant, because it would change `dark:` behaviour for
+every Tailwind consumer.
+
+**Compatibility rule, per surface.**
+
+- CSS surface: adding a Semantic Token Role is additive (a minor release). Renaming or removing a
+  role, changing the `--ds-` prefix or the selector, or renaming a CSS export is breaking.
+- `core` and `defineTheme` surface: adding a role is breaking for anyone who calls `defineTheme` on
+  their own input, because it now fails with `MISSING_CONTRACT_ROLE`. It needs a Semantic Token
+  Contract version bump, a `core` release first, the `theme` and `svelte` peer ranges updated
+  explicitly (a `^0.1.0` caret stops below `0.2.0`), and a `feat!` commit. `scripts/version.ts`
+  maps that to a minor while the package is on 0.x.
+
+**No new roles for this.** Fonts, radius, sidebar and chart roles stay out until a component, or
+the docs design decision (`trajectonomics/docs#10`), names a need (ADR 0003). That would be a
+separate Spec.
+
+**Brand Assets will be a separate leaf package.** Logo mark, wordmark and Favicon Set will be
+published as `@trajectonomics/design-system-assets`: static files with no dependencies and no peer
+dependencies, with its own release workflow, so art changes and Theme changes release
+independently (ADR 0002). The art and the licence for it come from the owner; agents do not invent
+brand art. The package's layout, ADR 0002's package table and the publishing steps are amended
+when the package lands (`trajectonomics/design-system#34`).
+
+## Considered alternatives
+
+- **Ship a `dark` variant in `tailwind.css`.** Convenient, but it silently changes `dark:` for
+  every Tailwind consumer. Rejected; documented instead.
+- **Define a default Theme in the prebuilt CSS.** Makes a bare page look right, but gives one Theme
+  a special status, against the Glossary. Rejected.
+- **Put assets in the `theme` package.** Cheaper (no new package to publish), but couples art
+  releases to Theme releases, which ADR 0002 avoids. Rejected.
+
+## Consequences
+
+- A non-Svelte consumer can depend on the surface above, and a change to it is a visible, versioned
+  event (a snapshot test pins it).
+- A new Semantic Token Role costs a coordinated `core`, `theme` and `svelte` release, not just a
+  `core` bump.
+- Consumers must set `data-theme` themselves; the cost of one attribute buys a Theme list with no
+  special case.
