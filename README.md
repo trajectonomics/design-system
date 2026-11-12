@@ -11,17 +11,19 @@ Part of the [Trajectonomics](https://github.com/trajectonomics) ecosystem.
 
 ## Packages
 
-This repository is a private Bun workspace with three published packages and one private app.
+This repository is a private Bun workspace with four published packages and one private app.
 
 | Package | Folder | What it gives you |
 | --- | --- | --- |
 | [`@trajectonomics/design-system`](./packages/core) | `packages/core` | Pure data: Primitive Tokens, Semantic Tokens, the Semantic Token Contract and the built-in `light` and `dark` Themes. No dependencies. |
 | [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind Theme Stylesheet. |
 | [`@trajectonomics/design-system-svelte`](./packages/svelte) | `packages/svelte` | Svelte 5 components and Hooks, with one compiled stylesheet. Consumers do not need Tailwind. |
+| [`@trajectonomics/design-system-assets`](./packages/assets) | `packages/assets` | Brand Assets: the logo mark, the wordmark and the Favicon Set, as static files. No dependencies. |
 | Storybook (private) | [`apps/storybook`](./apps/storybook) | Component previews with a Theme switcher and the accessibility addon. Never published. |
 
 Dependency direction is `svelte` → `theme` → `core`. `theme` and `svelte` declare their dependencies
-as peer dependencies with version ranges, and use workspace linking in development.
+as peer dependencies with version ranges, and use workspace linking in development. `assets` depends
+on nothing: it is a leaf of static files.
 
 ## Installation
 
@@ -31,6 +33,9 @@ bun add @trajectonomics/design-system @trajectonomics/design-system-theme
 
 # Svelte components and Hooks
 bun add @trajectonomics/design-system-svelte @trajectonomics/design-system-theme @trajectonomics/design-system
+
+# Brand Assets (logo mark, wordmark, Favicon Set)
+bun add @trajectonomics/design-system-assets
 ```
 
 A consumer needs `core` and `theme` alongside `svelte` because they are peer dependencies.
@@ -185,6 +190,45 @@ CSS export is breaking. On the `core` and `defineTheme` side a new role is break
 with a Semantic Token Contract version bump, a `core` release first and updated `theme` and `svelte`
 peer ranges.
 
+## Brand Assets
+
+`@trajectonomics/design-system-assets` ships the art a site needs as static files with no
+dependencies: the logo mark, the wordmark and the Favicon Set. The art comes from the owner, and the
+package adds no Design Tokens.
+
+```bash
+bun add @trajectonomics/design-system-assets
+```
+
+Import a file and let your bundler resolve the package export to a URL:
+
+```typescript
+import markOnLight from "@trajectonomics/design-system-assets/logo/mark-on-light.svg"
+import wordmarkOnDark from "@trajectonomics/design-system-assets/logo/wordmark-on-dark.svg"
+```
+
+The `-on-light` and `-on-dark` files carry a fixed colour, for `<img>` on a background you know.
+`mark.svg` and `wordmark.svg` use `currentColor`, for inlining where the mark should take the
+surrounding text colour.
+
+The Favicon Set is `favicon.svg` (which follows `prefers-color-scheme` by itself), `favicon.ico`
+(16, 32 and 48 px) and the 180, 192 and 512 px PNGs. Copy the files to a stable URL and declare them
+SVG first, because Safari largely ignores an SVG favicon:
+
+```bash
+cp node_modules/@trajectonomics/design-system-assets/favicon/* public/
+```
+
+```html
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+```
+
+Brand Assets are not MIT: they carry the owner's [NOTICE](./packages/assets/NOTICE) (all rights
+reserved), unlike the code packages, and they release on their own (`release-assets.yml`) so a logo
+change never republishes `theme`.
+
 ## Svelte components and Hooks
 
 Import the compiled stylesheet once, then use the components. You do not need to install or configure
@@ -221,7 +265,8 @@ Components never reference a Theme by name.
 packages/
 ├── core/       # tokens, Contract and built-in Themes (pure data)
 ├── theme/      # defineTheme, validation, Theme CSS, Tailwind stylesheet (pure behaviour)
-└── svelte/     # Svelte 5 components and Hooks, compiled CSS
+├── svelte/     # Svelte 5 components and Hooks, compiled CSS
+└── assets/     # Brand Assets: logo mark, wordmark, Favicon Set (static files)
 apps/
 └── storybook/  # private Storybook preview
 fixtures/
@@ -253,12 +298,12 @@ bun run dev
 bun run smoke
 ```
 
-The consumer smoke test packs `core`, `theme` and `svelte`, installs the tarballs into both fixture
-apps, then runs each app's own checks. The Svelte app runs `svelte-check`, a Theme-switch test and a
-production build; the framework-free app builds with Tailwind v4 and asserts the compiled CSS: the
-`--ds-` variables of both Themes, the resolved `bg-primary` utility and the `dark:` variant. It also
-fails if Svelte is installed, so the non-Svelte consumer stays provable. CI runs the smoke as its own
-job.
+The consumer smoke test packs `core`, `theme`, `svelte` and `assets`, installs the tarballs into both
+fixture apps, then runs each app's own checks. The Svelte app runs `svelte-check`, a Theme-switch test
+and a production build; the framework-free app builds with Tailwind v4 and asserts the compiled CSS:
+the `--ds-` variables of both Themes, the resolved `bg-primary` utility and the `dark:` variant, plus
+a Brand Asset import that resolves to an emitted file. It also fails if Svelte is installed, so the
+non-Svelte consumer stays provable. CI runs the smoke as its own job.
 
 TypeScript and test runners are split by package: `core` and `theme` use TypeScript 7 and `bun test`;
 `svelte` and Storybook pin TypeScript 6 locally and use `svelte-check`, Vitest and Prettier for
@@ -278,6 +323,7 @@ edits `version` by hand.
 | `@trajectonomics/design-system` | `packages/core` | `release-core.yml` | `core-v` |
 | `@trajectonomics/design-system-theme` | `packages/theme` | `release-theme.yml` | `theme-v` |
 | `@trajectonomics/design-system-svelte` | `packages/svelte` | `release-svelte.yml` | `svelte-v` |
+| `@trajectonomics/design-system-assets` | `packages/assets` | `release-assets.yml` | `assets-v` |
 
 See [docs/publishing.md](./docs/publishing.md) for the one-time npm setup, the first publish of each
 package and the Trusted Publisher entry each workflow filename must match. Each package's caller and

@@ -11,15 +11,16 @@ trap 'rm -rf "$WORK"' EXIT
 # non-Svelte consumer never pulls Svelte in.
 FIXTURES=(
 	"consumer:core theme svelte"
-	"web:core theme"
+	"web:core theme assets"
 )
-PACKAGES=(core theme svelte)
+PACKAGES=(core theme svelte assets)
 
 package_name() {
 	case "$1" in
 		core) echo "@trajectonomics/design-system" ;;
 		theme) echo "@trajectonomics/design-system-theme" ;;
 		svelte) echo "@trajectonomics/design-system-svelte" ;;
+		assets) echo "@trajectonomics/design-system-assets" ;;
 		*)
 			echo "unknown package: $1" >&2
 			return 1

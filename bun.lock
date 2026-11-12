@@ -35,6 +35,15 @@
         "vite": "^8.3.6",
       },
     },
+    "packages/assets": {
+      "name": "@trajectonomics/design-system-assets",
+      "version": "0.0.0-development",
+      "devDependencies": {
+        "@resvg/resvg-wasm": "^2.6.2",
+        "@types/bun": "^1.4.4",
+        "typescript": "^7.0.2",
+      },
+    },
     "packages/core": {
       "name": "@trajectonomics/design-system",
       "version": "0.0.0-development",
@@ -70,8 +79,8 @@
         "vitest": "^5.1.0",
       },
       "peerDependencies": {
-        "@trajectonomics/design-system": "^0.1.0",
-        "@trajectonomics/design-system-theme": "^0.1.0",
+        "@trajectonomics/design-system": "^0.1.0-alpha.0",
+        "@trajectonomics/design-system-theme": "^0.1.0-alpha.0",
         "svelte": "^5.0.0",
       },
     },
@@ -86,7 +95,7 @@
         "typescript": "^7.0.2",
       },
       "peerDependencies": {
-        "@trajectonomics/design-system": "^0.1.0",
+        "@trajectonomics/design-system": "^0.1.0-alpha.0",
       },
     },
   },
@@ -315,6 +324,8 @@
 
     "@quansync/fs": ["@quansync/fs@1.1.0", "", { "dependencies": { "quansync": "^1.0.0" } }, "sha512-qAPG/t3HqML1TlN7sY/pTbEjzFVAKsMjNNMGheyDosro+kT4iw2KCUoHcVdmliwWjorm4elZbgNQyU2eD97eDg=="],
 
+    "@resvg/resvg-wasm": ["@resvg/resvg-wasm@2.6.2", "", {}, "sha512-FqALmHI8D4o6lk/LRWDnhw95z5eO+eAa6ORjVg09YRR7BkcM6oPHU9uyC0gtQG5vpFLvgpeU4+zEAz2H8APHNw=="],
+
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.16", "", { "os": "android", "cpu": "arm" }, "sha512-ia3DwAs0OsMGS7+IConptSiyk9pEXkOx/AbJ2n/lAGxH3QkWQus1t8d7gnAT38FCU2sQu8lUbeR6AiZFv4JxaA=="],
 
     "@rolldown/binding-android-arm64": ["@rolldown/binding-android-arm64@1.2.16", "", { "os": "android", "cpu": "arm64" }, "sha512-kx5wBiMB6E7TEvpl2B9gjLU004BkvEm2Dr941BFjx/SontPwSzNuQUIoVKxHHoSjpFIfHMmcguyLOtyn0hObRg=="],
@@ -412,6 +423,8 @@
     "@testing-library/user-event": ["@testing-library/user-event@14.6.8", "", { "peerDependencies": { "@testing-library/dom": ">=7.21.4" } }, "sha512-vgSSqnANMnkcYR/vUNDbwS7aM3OErRLNUG8vCVVlj4oc6cKffUrccX7UAS5AmJQQNZTSibi9z5GvvRZ0aYgUCQ=="],
 
     "@trajectonomics/design-system": ["@trajectonomics/design-system@workspace:packages/core"],
+
+    "@trajectonomics/design-system-assets": ["@trajectonomics/design-system-assets@workspace:packages/assets"],
 
     "@trajectonomics/design-system-svelte": ["@trajectonomics/design-system-svelte@workspace:packages/svelte"],
 

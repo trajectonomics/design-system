@@ -74,6 +74,9 @@ jobs:
           - package: svelte
             folder: packages/svelte
             tag-prefix: svelte-v
+          - package: assets
+            folder: packages/assets
+            tag-prefix: assets-v
     uses: ./.github/workflows/release-package.yml
     with:
       package-folder: ${{ matrix.folder }}
