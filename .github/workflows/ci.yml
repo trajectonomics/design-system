@@ -9,8 +9,12 @@ on:
 permissions:
   contents: read
 
+# The shared check declares its own `${{ github.workflow }}-${{ github.ref }}`
+# group. A caller that repeats that expression makes the called run wait on the
+# run that called it, which GitHub cancels as a deadlock, so the group carries a
+# suffix. It still cancels superseded CI runs for the same ref.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-caller-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
