@@ -50,12 +50,15 @@ every Tailwind consumer.
 the docs design decision (`trajectonomics/docs#10`), names a need (ADR 0003). That would be a
 separate Spec.
 
-**Brand Assets will be a separate leaf package.** Logo mark, wordmark and Favicon Set will be
-published as `@trajectonomics/design-system-assets`: static files with no dependencies and no peer
-dependencies, with its own release workflow, so art changes and Theme changes release
-independently (ADR 0002). The art and the licence for it come from the owner; agents do not invent
-brand art. The package's layout, ADR 0002's package table and the publishing steps are amended
-when the package lands (`trajectonomics/design-system#34`).
+**Brand Assets are a separate leaf package.** Logo mark, wordmark and Favicon Set publish as
+`@trajectonomics/design-system-assets`: static files with no dependencies and no peer dependencies,
+with its own release workflow (`release-assets.yml`, tag prefix `assets-v`), so art changes and Theme
+changes release independently (ADR 0002). The art and the licence for it come from the owner; agents
+do not invent brand art. That package's layout and release pipeline are recorded in ADR 0002's
+amendment, and its publishing steps in `docs/publishing.md`
+(`trajectonomics/design-system#34`). Its `exports` subpaths are that package's own contract, pinned by
+its own tests: Brand Assets are not Design Tokens, so they are not part of the Web Consumer Contract
+above.
 
 ## Considered alternatives
 

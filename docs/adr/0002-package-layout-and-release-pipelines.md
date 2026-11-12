@@ -107,10 +107,14 @@ repo.
 
 ## Amendment: the assets package
 
-- 2026-11-12: the Packages table above gains a fourth row, `packages/assets` →
-  `@trajectonomics/design-system-assets`, which ships Brand Assets (the logo mark, the wordmark and
-  the Favicon Set) as static files. It has no dependencies and no peer dependencies, so it sits
-  outside the `svelte` → `theme` → `core` direction above; it has its own caller,
+The Packages table above gains this row:
+
+| Folder            | Package name                              | Responsibility                                                    |
+| ----------------- | ----------------------------------------- | ----------------------------------------------------------------- |
+| `packages/assets` | `@trajectonomics/design-system-assets`    | Brand Assets: the logo mark, the wordmark and the Favicon Set, as static files |
+
+- 2026-11-12: that package ships the Brand Assets. It has no dependencies and no peer dependencies, so
+  it sits outside the `svelte` → `theme` → `core` direction above. It has its own caller,
   `release-assets.yml`, triggered only by `packages/assets/**`, with tag prefix `assets-v`, which
   keeps art releases independent of Theme releases. Its art is not MIT: the owner supplies the
   `NOTICE` that governs it, and the package is first published by the owner
