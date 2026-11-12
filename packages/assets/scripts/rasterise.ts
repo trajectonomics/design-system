@@ -6,6 +6,7 @@
  */
 import { readFile } from "node:fs/promises"
 import { initWasm, Resvg } from "@resvg/resvg-wasm"
+import { RasterError } from "./raster-error"
 
 let wasmReady: Promise<void> | null = null
 
@@ -20,7 +21,7 @@ function loadWasm(): Promise<void> {
 /** Renders an SVG to a square PNG of `sizePx` pixels with a transparent background. */
 export async function rasteriseSvgToPng(svg: string, sizePx: number): Promise<Uint8Array> {
 	if (!Number.isInteger(sizePx) || sizePx < 1) {
-		throw new Error(`A PNG cannot be ${sizePx} pixels wide`)
+		throw new RasterError("raster-size-out-of-range", `A PNG cannot be ${sizePx} pixels wide`)
 	}
 	await loadWasm()
 	const image = new Resvg(svg, { fitTo: { mode: "width", value: sizePx } })

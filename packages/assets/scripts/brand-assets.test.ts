@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { readdir } from "node:fs/promises"
+import { readdir, readFile } from "node:fs/promises"
 import { join } from "node:path"
 import {
 	brandAssetExportPaths,
@@ -20,6 +20,26 @@ interface PackageManifest {
 
 async function packageManifest(): Promise<PackageManifest> {
 	return (await Bun.file(join(PACKAGE_ROOT, "package.json")).json()) as PackageManifest
+}
+
+/** The owner's source file for one package subpath. */
+async function sourceSvg(exportPath: string): Promise<string> {
+	const asset = brandAssetSvgs.find((candidate) => candidate.exportPath === exportPath)
+	if (asset === undefined) throw new Error(`${exportPath} is not one of the shipped SVGs`)
+	return readFile(join(BRAND_SOURCE_SVG, asset.sourceName), "utf8")
+}
+
+/** The hex colours an SVG paints with, as written. */
+function hexFills(svg: string): readonly string[] {
+	return [...svg.matchAll(/fill="(#[0-9a-fA-F]{3,6})"/g)].map((match) => match[1] ?? "")
+}
+
+/** Perceived brightness of a `#rgb` or `#rrggbb` colour, from 0 (black) to 1 (white). */
+function brightness(hex: string): number {
+	const digits = hex.slice(1)
+	const full = digits.length === 3 ? [...digits].map((digit) => digit + digit).join("") : digits
+	const channels = [0, 2, 4].map((start) => Number.parseInt(full.slice(start, start + 2), 16))
+	return channels.reduce((total, channel) => total + channel, 0) / (3 * 255)
 }
 
 describe("Brand Asset manifest", () => {
@@ -57,6 +77,42 @@ describe("Brand Asset manifest", () => {
 		for (const asset of brandAssetSvgs) {
 			expect(sources).toContain(asset.sourceName)
 		}
+	})
+
+	it("leaves the inline variants to the surrounding text colour", async () => {
+		for (const exportPath of ["./logo/mark.svg", "./logo/wordmark.svg"]) {
+			const svg = await sourceSvg(exportPath)
+			expect({ exportPath, currentColor: svg.includes("currentColor") }).toEqual({
+				exportPath,
+				currentColor: true,
+			})
+			expect({ exportPath, fills: hexFills(svg) }).toEqual({ exportPath, fills: [] })
+		}
+	})
+
+	it("keeps the on-light variants dark and the on-dark variants light", async () => {
+		for (const exportPath of ["./logo/mark-on-light.svg", "./logo/wordmark-on-light.svg"]) {
+			for (const fill of hexFills(await sourceSvg(exportPath))) {
+				expect({ exportPath, fill, dark: brightness(fill) < 0.5 }).toEqual({
+					exportPath,
+					fill,
+					dark: true,
+				})
+			}
+		}
+		for (const exportPath of ["./logo/mark-on-dark.svg", "./logo/wordmark-on-dark.svg"]) {
+			for (const fill of hexFills(await sourceSvg(exportPath))) {
+				expect({ exportPath, fill, light: brightness(fill) > 0.5 }).toEqual({
+					exportPath,
+					fill,
+					light: true,
+				})
+			}
+		}
+	})
+
+	it("lets the favicon SVG follow the reader's colour scheme", async () => {
+		expect(await sourceSvg(faviconSvgExportPath)).toContain("prefers-color-scheme")
 	})
 
 	it("keeps the owner's licence beside the art it governs", async () => {

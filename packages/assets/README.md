@@ -51,7 +51,7 @@ take the surrounding text colour, which is what a theme-aware header wants.
 Copy the files you need to a stable URL, for example a static site's `public` directory:
 
 ```bash
-cp node_modules/@trajectonomics/design-system-assets/favicon/* public/
+cp node_modules/@trajectonomics/design-system-assets/dist/favicon/* public/
 ```
 
 Then declare them SVG first. Safari largely ignores an SVG favicon, so the ICO and the Apple touch
@@ -64,7 +64,8 @@ icon are the fallbacks:
 ```
 
 `favicon.svg` carries its own `prefers-color-scheme` rule, so the browser tab follows the reader's
-scheme with no script. The ICO and the PNGs are one fixed colour, as those formats cannot adapt.
+scheme with no script. The ICO and the PNGs cannot adapt: they are the light-mode rendering, the
+black mark on a transparent background.
 
 ## Licence
 

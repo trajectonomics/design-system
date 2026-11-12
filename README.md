@@ -212,11 +212,12 @@ The `-on-light` and `-on-dark` files carry a fixed colour, for `<img>` on a back
 surrounding text colour.
 
 The Favicon Set is `favicon.svg` (which follows `prefers-color-scheme` by itself), `favicon.ico`
-(16, 32 and 48 px) and the 180, 192 and 512 px PNGs. Copy the files to a stable URL and declare them
+(16, 32 and 48 px) and the 180, 192 and 512 px PNGs. The rasters cannot adapt, so they are the
+light-mode rendering: the black mark on a transparent background. Copy the files to a stable URL and declare them
 SVG first, because Safari largely ignores an SVG favicon:
 
 ```bash
-cp node_modules/@trajectonomics/design-system-assets/favicon/* public/
+cp node_modules/@trajectonomics/design-system-assets/dist/favicon/* public/
 ```
 
 ```html
@@ -305,9 +306,9 @@ the `--ds-` variables of both Themes, the resolved `bg-primary` utility and the 
 a Brand Asset import that resolves to an emitted file. It also fails if Svelte is installed, so the
 non-Svelte consumer stays provable. CI runs the smoke as its own job.
 
-TypeScript and test runners are split by package: `core` and `theme` use TypeScript 7 and `bun test`;
-`svelte` and Storybook pin TypeScript 6 locally and use `svelte-check`, Vitest and Prettier for
-`.svelte` markup. See [ADR 0004](./docs/adr/0004-typescript-lint-and-test-tooling.md).
+TypeScript and test runners are split by package: `core`, `theme` and `assets` use TypeScript 7 and
+`bun test`; `svelte` and Storybook pin TypeScript 6 locally and use `svelte-check`, Vitest and
+Prettier for `.svelte` markup. See [ADR 0004](./docs/adr/0004-typescript-lint-and-test-tooling.md).
 
 ---
 
