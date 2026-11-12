@@ -1,8 +1,9 @@
 name: Release package
 
 # Reusable release for one published workspace package. Each package gets a thin
-# caller (release-core.yml, release-theme.yml, release-svelte.yml) that owns its
-# trigger paths and tag prefix. Nothing is copied between packages.
+# caller (release-core.yml, release-theme.yml, release-svelte.yml,
+# release-assets.yml) that owns its trigger paths and tag prefix. Nothing is
+# copied between packages.
 #
 # DELIBERATE SPECIAL CASE: this repo has several independently released packages
 # while the shared pipeline supports one. The shared multi-package pipeline is

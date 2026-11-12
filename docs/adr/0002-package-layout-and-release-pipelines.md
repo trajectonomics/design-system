@@ -17,6 +17,9 @@ this layout as it stands.
 
 ## Decision
 
+*Amended 2026-11-12: a fourth published package, `packages/assets`, is added by the amendment at the
+end of this record, so every "three" below means the three code packages.*
+
 **Workspace shape.** The repo root becomes a private, unpublished Bun workspace. Published packages
 live under `packages/`; the private Storybook preview lives under `apps/`. The root package is never
 published, and the package has never been on npm, so no consumer migrates.

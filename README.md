@@ -213,8 +213,10 @@ surrounding text colour.
 
 The Favicon Set is `favicon.svg` (which follows `prefers-color-scheme` by itself), `favicon.ico`
 (16, 32 and 48 px) and the 180, 192 and 512 px PNGs. The rasters cannot adapt, so they are the
-light-mode rendering: the black mark on a transparent background. Copy the files to a stable URL and declare them
-SVG first, because Safari largely ignores an SVG favicon:
+light-mode rendering: the black mark on a transparent background. iOS composites a transparent Apple
+touch icon on black, so draw the mark on your own background if it must read on a dark home screen.
+Copy the files to a stable URL and declare them SVG first, because Safari largely ignores an SVG
+favicon:
 
 ```bash
 cp node_modules/@trajectonomics/design-system-assets/dist/favicon/* public/

@@ -65,7 +65,8 @@ icon are the fallbacks:
 
 `favicon.svg` carries its own `prefers-color-scheme` rule, so the browser tab follows the reader's
 scheme with no script. The ICO and the PNGs cannot adapt: they are the light-mode rendering, the
-black mark on a transparent background.
+black mark on a transparent background. iOS composites a transparent Apple touch icon on black, so
+draw the mark on your own background if it must read on a dark home screen.
 
 ## Licence
 
