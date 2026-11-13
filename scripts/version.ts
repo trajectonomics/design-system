@@ -7,6 +7,9 @@
  *
  *   bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel alpha
  *   bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel stable --bump major
+ *
+ * A package that ships files copied from outside its folder passes each source
+ * with --extra-path (repeatable), so a change there counts as a change to the package.
  */
 import { parseArgs } from "node:util"
 import { $ } from "bun"
@@ -21,9 +24,13 @@ async function gitTags(): Promise<string[]> {
 	return (await $`git tag --list`.text()).split("\n").filter(Boolean)
 }
 
-async function commitsTouching(tag: string | null, packageFolder: string): Promise<string[]> {
+async function commitsTouching(
+	tag: string | null,
+	packageFolder: string,
+	extraPaths: readonly string[],
+): Promise<string[]> {
 	const range = tag ? `${tag}..HEAD` : "HEAD"
-	const log = await $`git log ${range} --format=%B%x00 -- ${packageFolder}`.text()
+	const log = await $`git log ${range} --format=%B%x00 -- ${packageFolder} ${extraPaths}`.text()
 	return log
 		.split("\0")
 		.map((message) => message.trim())
@@ -55,6 +62,10 @@ function parseBump(value: string | undefined): BumpRequest {
 	throw new Error("--bump must be auto, major, minor or patch")
 }
 
+function parseExtraPaths(value: readonly string[] | undefined): string[] {
+	return (value ?? []).map((path) => path.replace(/\/+$/, ""))
+}
+
 function isPackageManifest(value: unknown): value is PackageManifest {
 	if (typeof value !== "object" || value === null || !("name" in value)) return false
 	return typeof value.name === "string"
@@ -67,6 +78,7 @@ async function main(): Promise<void> {
 			channel: { type: "string" },
 			bump: { type: "string", default: "auto" },
 			"package-folder": { type: "string" },
+			"extra-path": { type: "string", multiple: true, default: [] },
 			"tag-prefix": { type: "string" },
 			"dry-run": { type: "boolean", default: false },
 			json: { type: "boolean", default: false },
@@ -79,7 +91,8 @@ async function main(): Promise<void> {
 	const tagPrefix = required(values["tag-prefix"], "--tag-prefix")
 
 	const lastRelease = lastStableRelease(await gitTags(), tagPrefix)
-	const commits = await commitsTouching(lastRelease?.tag ?? null, packageFolder)
+	const extraPaths = parseExtraPaths(values["extra-path"])
+	const commits = await commitsTouching(lastRelease?.tag ?? null, packageFolder, extraPaths)
 	const manifest: unknown = await Bun.file(`${packageFolder}/package.json`).json()
 	if (!isPackageManifest(manifest)) {
 		throw new Error(`${packageFolder}/package.json does not declare a package name`)
@@ -89,7 +102,7 @@ async function main(): Promise<void> {
 	if (plan === null) {
 		if (!values["dry-run"]) {
 			throw new Error(
-				`Nothing to release: no commits touched ${packageFolder} since ${lastRelease?.tag ?? "the first commit"}`,
+				`Nothing to release: no commits touched ${[packageFolder, ...extraPaths].join(", ")} since ${lastRelease?.tag ?? "the first commit"}`,
 			)
 		}
 		console.log(values.json ? "null" : "none")

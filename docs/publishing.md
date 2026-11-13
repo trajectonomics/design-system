@@ -10,9 +10,13 @@ Each published package has its own caller of the reusable `.github/workflows/rel
 | `@trajectonomics/design-system` | `packages/core` | `release-core.yml` | `core-v` | `release-core.yml` |
 | `@trajectonomics/design-system-theme` | `packages/theme` | `release-theme.yml` | `theme-v` | `release-theme.yml` |
 | `@trajectonomics/design-system-svelte` | `packages/svelte` | `release-svelte.yml` | `svelte-v` | `release-svelte.yml` |
+| `@trajectonomics/design-system-assets` | `packages/assets` | `release-assets.yml` | `assets-v` | `release-assets.yml` |
 
 - A caller triggers only on changes under its own package folder, so a change to one package never
   publishes another.
+- The assets package ships art copied from `brand-source/`, so its caller also triggers on
+  `brand-source/**` and passes `extra-paths: brand-source`, which `scripts/version.ts` takes as
+  `--extra-path`. A commit that only changes the art therefore publishes a new version.
 - `scripts/version.ts` reads the conventional-commit messages that touched the folder since the
   package's last stable tag (`core-vX.Y.Z`, `theme-vX.Y.Z`, `svelte-vX.Y.Z`). The bump is
   `feat:` → minor, `!` / `BREAKING CHANGE` → major (minor while on 0.x), anything else → patch.
@@ -20,8 +24,8 @@ Each published package has its own caller of the reusable `.github/workflows/rel
 - A push to `main` publishes an alpha (dist-tag `alpha`); a manual run from `main` publishes a stable
   version (dist-tag `latest`), creates the `<prefix>X.Y.Z` tag and the GitHub release.
 - A package with only alpha releases has no `latest` dist-tag until its first stable release. That is
-  the state `theme` and `svelte` start in; `core` already carries `latest` (`0.1.0-alpha.0`) from its
-  hand publish.
+  the state `theme`, `svelte` and `assets` start in; `core` already carries `latest` (`0.1.0-alpha.0`)
+  from its hand publish.
 - Workflow filenames are part of the Trusted Publisher contract (see ADR 0002). Do not rename them.
 
 Before publishing, a dry run (Actions → the package's **Release …** workflow → Run workflow → enable
@@ -33,6 +37,7 @@ tarball's file list, all without publishing or tagging. You can run the same pla
 bun scripts/version.ts --package-folder packages/core --tag-prefix core-v --channel alpha --dry-run
 bun scripts/version.ts --package-folder packages/theme --tag-prefix theme-v --channel alpha --dry-run
 bun scripts/version.ts --package-folder packages/svelte --tag-prefix svelte-v --channel alpha --dry-run
+bun scripts/version.ts --package-folder packages/assets --tag-prefix assets-v --channel alpha --dry-run
 ```
 
 CI runs every package's dry run on every pull request.
@@ -47,11 +52,12 @@ documented special case. See ADR 0002.
    Verify with `npm whoami`.
 2. Confirm you belong to the `@trajectonomics` npm org: `npm org ls trajectonomics <your-npm-user>`.
 3. **Check which names exist.** `@trajectonomics/design-system` (`packages/core`) is already on npm
-   (`0.1.0-alpha.0`, published by hand earlier), so it needs no first publish. The other two should
+   (`0.1.0-alpha.0`, published by hand earlier), so it needs no first publish. The other three should
    answer 404:
    ```bash
    npm view @trajectonomics/design-system-theme
    npm view @trajectonomics/design-system-svelte
+   npm view @trajectonomics/design-system-assets
    ```
 4. **Build every package first**, so the published tarballs contain `dist`:
    ```bash
@@ -89,16 +95,21 @@ documented special case. See ADR 0002.
    npm view @trajectonomics/design-system-theme dist-tags
    npm view @trajectonomics/design-system-svelte dist-tags
    ```
+
+   `assets` is not published by an agent: its art is licensed by the owner (see
+   [`packages/assets/NOTICE`](../packages/assets/NOTICE)), so its first publish and Trusted Publisher
+   are `trajectonomics/infra#26`. Until that issue is done, `release-assets.yml` fails loudly without
+   publishing, and no one edits the package `version`.
 6. **Switch each package to trusted publishing.** On npmjs.com open the package, then Settings,
    then Trusted Publisher, and choose GitHub Actions with repository
    `trajectonomics/design-system` and the workflow filename from the table above. Repeat for all
-   three packages. Then set each package's publishing access to require 2FA and disallow tokens.
+   four published packages. Then set each package's publishing access to require 2FA and disallow tokens.
 7. **Check the release workflows**: they publish with OIDC only. There is deliberately no token
    fallback or "skip publish step" guard: a missing or misnamed Trusted Publisher entry fails the
    release loudly instead of exiting green without publishing.
 8. **Verify** each workflow with a small `fix:` PR that touches that package's folder and confirm the
-   new alpha appears with provenance. A change to one package must not release the other two.
+   new alpha appears with provenance. A change to one package must not release the others.
 9. **Cut the first stable release** of each package from `main` by running its **Release …** workflow
    with the desired bump. The workflow publishes under `latest` and creates the package's tag and
    GitHub release. Publish `core` first, then `theme`, then `svelte`, so the peer-dependency ranges
-   resolve for consumers.
+   resolve for consumers; `assets` has no peers, so it can go at any point.

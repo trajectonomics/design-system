@@ -4,6 +4,11 @@ import { join } from "node:path"
 
 const DIST_ASSETS = join(import.meta.dir, "..", "dist", "assets")
 
+/** The built files Vite emitted, by name. */
+async function builtFiles(): Promise<readonly string[]> {
+	return readdir(DIST_ASSETS)
+}
+
 /** The built stylesheets Vite emitted, joined into one document. */
 async function builtCss(): Promise<string> {
 	const files = (await readdir(DIST_ASSETS)).filter((name) => name.endsWith(".css"))
@@ -54,5 +59,21 @@ describe("framework-free consumer build", () => {
 	it("compiles the documented dark variant against data-theme", async () => {
 		const css = await builtCss()
 		expect(css).toMatch(/\.dark\\:bg-card[^{]*:where\(\[data-theme=["']?dark["']?\]/)
+	})
+})
+
+describe("Brand Asset import", () => {
+	it("resolves a Brand Asset subpath to a file the build emits", async () => {
+		const files = await builtFiles()
+		const svg = files.find((name) => name.startsWith("mark-on-light-") && name.endsWith(".svg"))
+		if (svg === undefined) throw new Error(`No emitted Brand Asset in ${DIST_ASSETS}`)
+		const contents = await readFile(join(DIST_ASSETS, svg), "utf8")
+
+		expect(contents).toContain('viewBox="0 0 1024 1024"')
+		expect(contents).toContain('fill="#000"')
+
+		const script = files.find((name) => name.endsWith(".js"))
+		if (script === undefined) throw new Error(`No emitted script in ${DIST_ASSETS}`)
+		expect(await readFile(join(DIST_ASSETS, script), "utf8")).toContain(svg)
 	})
 })

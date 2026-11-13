@@ -17,6 +17,9 @@ this layout as it stands.
 
 ## Decision
 
+*Amended 2026-11-12: a fourth published package, `packages/assets`, is added by the amendment at the
+end of this record, so every "three" below means the three code packages.*
+
 **Workspace shape.** The repo root becomes a private, unpublished Bun workspace. Published packages
 live under `packages/`; the private Storybook preview lives under `apps/`. The root package is never
 published, and the package has never been on npm, so no consumer migrates.
@@ -101,3 +104,18 @@ repo.
   `0.1.0-alpha.N` resolves and a stable `0.1.x` still does, while `0.2.0-*` does not. Known semver
   limit: a prerelease on a later patch (`0.1.1-alpha.0`) does not match; alpha consumers then use
   their package manager's override. The range is hand-edited, not tied to the package version.
+
+## Amendment: the assets package
+
+The Packages table above gains this row:
+
+| Folder            | Package name                              | Responsibility                                                    |
+| ----------------- | ----------------------------------------- | ----------------------------------------------------------------- |
+| `packages/assets` | `@trajectonomics/design-system-assets`    | Brand Assets: the logo mark, the wordmark and the Favicon Set, as static files |
+
+- 2026-11-12: that package ships the Brand Assets. It has no dependencies and no peer dependencies, so
+  it sits outside the `svelte` → `theme` → `core` direction above. It has its own caller,
+  `release-assets.yml`, triggered only by `packages/assets/**`, with tag prefix `assets-v`, which
+  keeps art releases independent of Theme releases. Its art is not MIT: the owner supplies the
+  `NOTICE` that governs it, and the package is first published by the owner
+  (`trajectonomics/infra#26`).

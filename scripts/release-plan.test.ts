@@ -20,6 +20,13 @@ describe("lastStableRelease", () => {
 		expect(lastStableRelease([], "core-v")).toBeNull()
 	})
 
+	it("reads the assets package's own tag prefix", () => {
+		expect(lastStableRelease(["core-v0.1.0", "assets-v0.3.2"], "assets-v")).toEqual({
+			tag: "assets-v0.3.2",
+			version: "0.3.2",
+		})
+	})
+
 	it("returns a frozen release", () => {
 		expect(Object.isFrozen(lastStableRelease(["core-v1.0.0"], "core-v"))).toBe(true)
 	})
@@ -79,6 +86,19 @@ describe("planRelease", () => {
 		expect(first?.version).toBe("0.1.1-alpha.0")
 		expect(second?.version).toBe("0.2.0-alpha.0")
 		expect(third?.version).toBe("0.2.0-alpha.1")
+	})
+
+	it("plans a leaf package's alpha from its own published versions", () => {
+		const plan = planRelease({
+			channel: "alpha",
+			bump: "auto",
+			tagPrefix: "assets-v",
+			lastRelease: { tag: "assets-v0.1.0", version: "0.1.0" },
+			commits: ["feat(assets): add the favicon set"],
+			published: ["0.1.0", "0.2.0-alpha.0"],
+		})
+		expect(plan?.version).toBe("0.2.0-alpha.1")
+		expect(plan?.tag).toBeNull()
 	})
 
 	it("returns a frozen plan", () => {

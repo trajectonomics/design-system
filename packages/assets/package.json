@@ -1,0 +1,52 @@
+{
+	"name": "@trajectonomics/design-system-assets",
+	"version": "0.0.0-development",
+	"description": "Trajectonomics design system: Brand Assets (logo mark, wordmark and Favicon Set)",
+	"license": "SEE LICENSE IN NOTICE",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/trajectonomics/design-system.git",
+		"directory": "packages/assets"
+	},
+	"type": "module",
+	"sideEffects": false,
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"exports": {
+		"./logo/mark.svg": "./dist/logo/mark.svg",
+		"./logo/wordmark.svg": "./dist/logo/wordmark.svg",
+		"./logo/mark-on-light.svg": "./dist/logo/mark-on-light.svg",
+		"./logo/mark-on-dark.svg": "./dist/logo/mark-on-dark.svg",
+		"./logo/wordmark-on-light.svg": "./dist/logo/wordmark-on-light.svg",
+		"./logo/wordmark-on-dark.svg": "./dist/logo/wordmark-on-dark.svg",
+		"./favicon/favicon.svg": "./dist/favicon/favicon.svg",
+		"./favicon/favicon.ico": "./dist/favicon/favicon.ico",
+		"./favicon/apple-touch-icon.png": "./dist/favicon/apple-touch-icon.png",
+		"./favicon/icon-192.png": "./dist/favicon/icon-192.png",
+		"./favicon/icon-512.png": "./dist/favicon/icon-512.png",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist",
+		"NOTICE",
+		"INTER-OFL-1.1.txt"
+	],
+	"publishConfig": {
+		"access": "public",
+		"provenance": true,
+		"tag": "latest"
+	},
+	"scripts": {
+		"build": "bun run scripts/build-assets.ts",
+		"test": "bun test",
+		"typecheck": "tsc -p tsconfig.json",
+		"lint": "biome ci --error-on-warnings .",
+		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./logo/mark.svg ./logo/wordmark.svg ./logo/mark-on-light.svg ./logo/mark-on-dark.svg ./logo/wordmark-on-light.svg ./logo/wordmark-on-dark.svg ./favicon/favicon.svg ./favicon/favicon.ico ./favicon/apple-touch-icon.png ./favicon/icon-192.png ./favicon/icon-512.png"
+	},
+	"devDependencies": {
+		"@resvg/resvg-wasm": "^2.6.2",
+		"@types/bun": "^1.4.4",
+		"typescript": "^7.0.2"
+	}
+}
