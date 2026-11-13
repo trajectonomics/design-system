@@ -81,6 +81,17 @@ describe("version for one workspace package", () => {
 		})
 	})
 
+	it("counts commits that touched an extra path the package copies from", () => {
+		const cwd = taggedPackage("core-v0.1.0", [
+			"packages/core/package.json",
+			"brand-source/svg/mark.svg",
+		])
+		commit(cwd, "fix: redraw the mark", "brand-source/svg/mark.svg")
+
+		expect(version(cwd, ...CORE_ARGS, "--dry-run")).toBe("none")
+		expect(version(cwd, ...CORE_ARGS, "--extra-path", "brand-source")).toBe("0.1.1")
+	})
+
 	it("reads only the tags carrying that package's prefix", () => {
 		const cwd = taggedPackage("theme-v2.0.0")
 		commit(cwd, "feat(core): add tokens", "packages/core/src/index.ts")

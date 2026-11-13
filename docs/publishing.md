@@ -14,6 +14,9 @@ Each published package has its own caller of the reusable `.github/workflows/rel
 
 - A caller triggers only on changes under its own package folder, so a change to one package never
   publishes another.
+- The assets package ships art copied from `brand-source/`, so its caller also triggers on
+  `brand-source/**` and passes `extra-paths: brand-source`, which `scripts/version.ts` takes as
+  `--extra-path`. A commit that only changes the art therefore publishes a new version.
 - `scripts/version.ts` reads the conventional-commit messages that touched the folder since the
   package's last stable tag (`core-vX.Y.Z`, `theme-vX.Y.Z`, `svelte-vX.Y.Z`). The bump is
   `feat:` → minor, `!` / `BREAKING CHANGE` → major (minor while on 0.x), anything else → patch.

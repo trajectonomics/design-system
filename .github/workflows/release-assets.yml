@@ -5,8 +5,8 @@ name: Release assets
 # workflow, so its Trusted Publisher entry must be repository
 # trajectonomics/design-system, workflow release-assets.yml.
 #
-# Only changes under packages/assets trigger a release, so a change to another
-# package never publishes this one. A push to main publishes an alpha
+# Only changes under packages/assets or brand-source (the art it copies) trigger
+# a release, so a change to another package never publishes this one. A push to main publishes an alpha
 # (dist-tag "alpha"); a manual run publishes a stable version (dist-tag
 # "latest"), tags assets-vX.Y.Z and creates the GitHub release. Run a stable
 # release from main, and use dry-run: true to plan it without publishing.
@@ -18,10 +18,11 @@ on:
     branches: [main]
     paths:
       - "packages/assets/**"
+      - "brand-source/**"
   workflow_dispatch:
     inputs:
       bump:
-        description: Version bump. auto reads commits that touched packages/assets.
+        description: Version bump. auto reads commits that touched packages/assets or brand-source.
         type: choice
         options: [auto, patch, minor, major]
         default: auto
@@ -38,6 +39,7 @@ jobs:
     uses: ./.github/workflows/release-package.yml
     with:
       package-folder: packages/assets
+      extra-paths: brand-source
       tag-prefix: assets-v
       bump: ${{ inputs.bump || 'auto' }}
       dry-run: ${{ inputs.dry-run || false }}

@@ -1,7 +1,7 @@
 Trajectonomics brand assets
 Copyright (c) 2026 Trajectonomics. All rights reserved.
 
-The Trajectonomics logo mark, wordmark, lockups, app tiles and favicon in this
+The Trajectonomics logo mark, wordmark and favicon in this
 package are proprietary brand assets. No licence is granted to use, copy,
 modify or distribute them, except to render them unchanged inside products
 and documentation published by Trajectonomics. Contact the owner for any
@@ -9,7 +9,7 @@ other use.
 
 This notice covers only the files in this package. The rest of the
 Trajectonomics design system is licensed under the MIT licence stated in the
-LICENSE file of its own package.
+LICENSE file at the root of the repository.
 
 Typeface: the wordmark is the word "Trajectonomics" set in Inter SemiBold
 (Copyright 2020 The Inter Project Authors, https://github.com/rsms/inter) and

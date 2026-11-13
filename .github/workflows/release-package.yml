@@ -35,6 +35,10 @@ on:
         description: Per-package tag prefix, e.g. core-v, producing core-vX.Y.Z.
         type: string
         required: true
+      extra-paths:
+        description: Space-separated repo paths outside the package folder whose commits also count, e.g. brand-source.
+        type: string
+        default: ""
       bump:
         description: Stable bump. auto reads the conventional commits that touched the package.
         type: string
@@ -87,9 +91,11 @@ jobs:
           BUMP: ${{ inputs.bump }}
           PACKAGE_FOLDER: ${{ inputs.package-folder }}
           TAG_PREFIX: ${{ inputs.tag-prefix }}
+          EXTRA_PATHS: ${{ inputs.extra-paths }}
           DRY_RUN: ${{ inputs.dry-run }}
         run: |
           ARGS=(--channel "$CHANNEL" --bump "$BUMP" --package-folder "$PACKAGE_FOLDER" --tag-prefix "$TAG_PREFIX" --json)
+          for EXTRA in $EXTRA_PATHS; do ARGS+=(--extra-path "$EXTRA"); done
           if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
           PLAN=$(bun scripts/version.ts "${ARGS[@]}")
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
