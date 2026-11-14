@@ -32,11 +32,13 @@
 		"./themes/light.css": "./dist/themes/light.css",
 		"./themes/dark.css": "./dist/themes/dark.css",
 		"./tailwind.css": "./tailwind.css",
+		"./typography.css": "./typography.css",
 		"./package.json": "./package.json"
 	},
 	"files": [
 		"dist",
-		"tailwind.css"
+		"tailwind.css",
+		"typography.css"
 	],
 	"publishConfig": {
 		"access": "public",
@@ -50,7 +52,7 @@
 		"test": "bun test",
 		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json && tsc -p tsconfig.scripts.json",
 		"lint": "biome ci --error-on-warnings .",
-		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./themes/light.css ./themes/dark.css ./tailwind.css"
+		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./themes/light.css ./themes/dark.css ./tailwind.css ./typography.css"
 	},
 	"peerDependencies": {
 		"@trajectonomics/design-system": "^0.1.0-alpha.0"

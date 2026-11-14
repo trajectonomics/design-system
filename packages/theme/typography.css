@@ -1,0 +1,11 @@
+[data-theme] {
+	font-family:
+		ui-sans-serif, system-ui, "Segoe UI", "Leelawadee UI", Thonburi, "Noto Sans Thai", sans-serif;
+	line-height: 1.7;
+	word-break: normal;
+}
+
+[data-theme]:lang(th),
+[data-theme] :lang(th) {
+	line-height: 1.8;
+}

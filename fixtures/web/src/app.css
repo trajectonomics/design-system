@@ -2,6 +2,7 @@
 @import "@trajectonomics/design-system-theme/themes/light.css";
 @import "@trajectonomics/design-system-theme/themes/dark.css";
 @import "@trajectonomics/design-system-theme/tailwind.css";
+@import "@trajectonomics/design-system-theme/typography.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
@@ -10,5 +11,4 @@ body {
 	min-height: 100vh;
 	background: var(--ds-color-background);
 	color: var(--ds-color-foreground);
-	font-family: system-ui, sans-serif;
 }
