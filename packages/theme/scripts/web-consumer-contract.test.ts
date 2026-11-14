@@ -103,6 +103,7 @@ describe("Web Consumer Contract", () => {
 			"./tailwind.css",
 			"./themes/dark.css",
 			"./themes/light.css",
+			"./typography.css",
 		])
 	})
 })

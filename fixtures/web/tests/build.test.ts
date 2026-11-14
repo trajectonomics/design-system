@@ -62,6 +62,23 @@ describe("framework-free consumer build", () => {
 	})
 })
 
+describe("System Typography Stylesheet import", () => {
+	it("gives themed text a system stack with Thai coverage, and loads no font file", async () => {
+		const css = await builtCss()
+		const themed = /\[data-theme\]\{([^}]*)\}/.exec(css)?.[1] ?? ""
+		const thai =
+			/\[data-theme\]:lang\(th\),\[data-theme\] :lang\(th\)\{([^}]*)\}/.exec(css)?.[1] ?? ""
+
+		expect(themed).toContain("Leelawadee UI")
+		expect(themed).toContain("Thonburi")
+		expect(themed).toContain("Noto Sans Thai")
+		expect(themed).toContain("line-height:1.7")
+		expect(themed).toContain("word-break:normal")
+		expect(thai).toBe("line-height:1.8")
+		expect(css).not.toContain("@font-face")
+	})
+})
+
 describe("Brand Asset import", () => {
 	it("resolves a Brand Asset subpath to a file the build emits", async () => {
 		const files = await builtFiles()

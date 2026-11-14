@@ -99,20 +99,30 @@ bun add @trajectonomics/design-system @trajectonomics/design-system-theme
 
 ### The stylesheets to import
 
-With Tailwind v4, import Tailwind first, then the Themes you offer and the Tailwind Theme Stylesheet.
-This is the whole setup, and the framework-free fixture in `fixtures/web` builds from exactly these
-lines:
+With Tailwind v4, import Tailwind first, then the Themes you offer, the Tailwind Theme Stylesheet
+and the System Typography Stylesheet. This is the whole setup, and the framework-free fixture in
+`fixtures/web` builds from exactly these lines:
 
 ```css
 @import "tailwindcss";
 @import "@trajectonomics/design-system-theme/themes/light.css";
 @import "@trajectonomics/design-system-theme/themes/dark.css";
 @import "@trajectonomics/design-system-theme/tailwind.css";
+@import "@trajectonomics/design-system-theme/typography.css";
 ```
 
 `tailwind.css` is a Tailwind v4 `@theme inline` stylesheet, so utility colours such as `bg-primary`,
 `text-primary-foreground`, `border-border` and `ring-ring` follow the active Theme, including
 generated Themes.
+
+`typography.css` is the System Typography Stylesheet. It is optional: a page that does not import it
+keeps whatever font the app sets. Imported, it gives text on a themed element a system font stack
+that covers Thai, a line height that fits Thai vowels above and below the line, and normal word
+breaking so Thai clusters stay intact. It raises the line height again inside `:lang(th)`, so a Thai
+phrase inside an English page still fits. It loads no font file and declares no `--ds-` property, so
+a page with a no-web-font budget can still import it. Because it selects `[data-theme]`, it wins over
+Tailwind's preflight on `font-family` and `line-height` whatever the import order, as long as the
+Theme attribute sits on `<html>`.
 
 Without Tailwind, import the Theme CSS only and use the custom properties directly. They are `--ds-`
 plus the Semantic Token Role name with dots replaced by dashes, so `color.primary.foreground` is
@@ -184,11 +194,11 @@ every Tailwind consumer. Add this descendant-safe variant to your own CSS after 
 
 The variable names, the `data-theme` selector, the Tailwind Theme Stylesheet's colour names and the
 package's CSS export paths are the **Web Consumer Contract**
-([ADR 0005](./docs/adr/0005-web-consumer-contract.md)). Adding a Semantic Token Role is additive (a
-minor release); renaming or removing one, changing the `--ds-` prefix or the selector, or renaming a
-CSS export is breaking. On the `core` and `defineTheme` side a new role is breaking, so it ships
-with a Semantic Token Contract version bump, a `core` release first and updated `theme` and `svelte`
-peer ranges.
+([ADR 0005](./docs/adr/0005-web-consumer-contract.md)), and `typography.css` is one of those paths.
+Adding a Semantic Token Role is additive (a minor release); renaming or removing one, changing the
+`--ds-` prefix or the selector, or renaming a CSS export is breaking. On the `core` and `defineTheme`
+side a new role is breaking, so it ships with a Semantic Token Contract version bump, a `core` release
+first and updated `theme` and `svelte` peer ranges.
 
 ## Brand Assets
 
