@@ -46,6 +46,9 @@ A static file that carries the Trajectonomics identity for consumers: the logo m
 ### Favicon Set
 The Brand Assets a site needs for its browser and home-screen icons: an SVG favicon, an ICO, an Apple touch icon and 192 and 512 pixel PNGs.
 
+### Brand Typeface
+The brand font files (Inter woff2, latin and latin-ext subsets) and their `@font-face` stylesheet, shipped by the assets package as opt-in exports. The Brand Typeface is not a Brand Asset and not a Design Token; it is licensed under the SIL Open Font License 1.1 (`INTER-OFL-1.1.txt`), not the artwork's NOTICE. A consumer imports its stylesheet and assigns its own `--font-*` variable; the System Typography Stylesheet stays the zero-payload default.
+
 ### Hook
 A reactive helper function, named `use*`, that the Svelte package exports for consumers (for example `useTheme`). A Hook exists only when a concrete component or consumer need requires it. Hooks belong to the Svelte package and never to the pure core.
 
