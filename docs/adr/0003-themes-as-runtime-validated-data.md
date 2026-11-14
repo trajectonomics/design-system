@@ -105,3 +105,12 @@ These guardrails are the parts that must exist now, and each is enforced by at l
   contrast enforcement, font loading, asset handling, runtime delivery, light/dark pairing, locked
   Semantic Tokens and Contract migration. The guardrails keep those additions from requiring a
   redesign.
+
+## Amendment: Semantic Token Contract v2
+
+- 2026-11-14: the approved Spec `trajectonomics/design-system#60` extends the Contract to version 2
+  with 25 `length` and `fontFamily` roles (`radius.*`, `space.*`, `font.family.*`, `font.size.*`),
+  named by the docs design decision (`trajectonomics/docs#10`) as the "separate Spec" the colour-only
+  clause above deferred to. The colour role list above remains the v1 colour set; the closed-world and
+  version-bump rules in this ADR apply unchanged — every Theme resolves the new roles, and
+  `defineTheme` rejects a Theme that misses one with `MISSING_CONTRACT_ROLE`.

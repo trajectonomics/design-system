@@ -51,7 +51,7 @@ import {
 } from "@trajectonomics/design-system"
 
 // The closed, versioned set of Semantic Token names every Theme resolves.
-console.log(semanticTokenContract.version) // 1
+console.log(semanticTokenContract.version) // 2
 
 // Built-in Themes are plain, frozen data.
 console.log(lightTheme.tokens["color.primary"]) // "#171717"
@@ -111,9 +111,9 @@ and the System Typography Stylesheet. This is the whole setup, and the framework
 @import "@trajectonomics/design-system-theme/typography.css";
 ```
 
-`tailwind.css` is a Tailwind v4 `@theme inline` stylesheet, so utility colours such as `bg-primary`,
-`text-primary-foreground`, `border-border` and `ring-ring` follow the active Theme, including
-generated Themes.
+`tailwind.css` is a Tailwind v4 `@theme inline` stylesheet, so utilities such as `bg-primary`,
+`text-primary-foreground`, `border-border`, `ring-ring`, `rounded-xl`, `p-4`, `text-base` and
+`font-sans` follow the active Theme, including generated Themes.
 
 `typography.css` is the System Typography Stylesheet. It is optional: a page that does not import it
 keeps whatever font the app sets. Imported, it gives text on a themed element a system font stack
@@ -192,7 +192,7 @@ every Tailwind consumer. Add this descendant-safe variant to your own CSS after 
 
 ### Compatibility
 
-The variable names, the `data-theme` selector, the Tailwind Theme Stylesheet's colour names and the
+The variable names, the `data-theme` selector, the Tailwind Theme Stylesheet's mapped names and the
 package's CSS export paths are the **Web Consumer Contract**
 ([ADR 0005](./docs/adr/0005-web-consumer-contract.md)), and `typography.css` is one of those paths.
 Adding a Semantic Token Role is additive (a minor release); renaming or removing one, changing the
