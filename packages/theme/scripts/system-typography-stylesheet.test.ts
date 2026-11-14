@@ -69,7 +69,7 @@ function properties(css: string): readonly string[] {
 }
 
 /** The first value a stylesheet gives a property, or `undefined` when no rule sets it. */
-function declaredValue(css: string, property: string): string | undefined {
+function firstDeclaredValue(css: string, property: string): string | undefined {
 	for (const rule of rules(css)) {
 		for (const declaration of rule.declarations) {
 			const [name, ...rest] = declaration.split(":")
@@ -90,7 +90,7 @@ describe("System Typography Stylesheet", () => {
 	})
 
 	it("names a system font stack that covers Thai without a font file", async () => {
-		const stack = declaredValue(await readStylesheet(), "font-family")
+		const stack = firstDeclaredValue(await readStylesheet(), "font-family")
 
 		expect(stack).toBeDefined()
 		expect(stack).toContain("ui-sans-serif")
@@ -107,7 +107,7 @@ describe("System Typography Stylesheet", () => {
 			rule.selectors.some((selector) => selector.includes(":lang(th)")),
 		)
 
-		expect(declaredValue(css, "line-height")).toBe("1.7")
+		expect(firstDeclaredValue(css, "line-height")).toBe("1.7")
 		expect(thaiRules.length).toBeGreaterThan(0)
 		for (const rule of thaiRules) expect(rule.declarations).toContain("line-height: 1.8")
 	})
@@ -115,7 +115,7 @@ describe("System Typography Stylesheet", () => {
 	it("declares only the typography properties and keeps normal word breaking", async () => {
 		const css = await readStylesheet()
 
-		expect(declaredValue(css, "word-break")).toBe("normal")
+		expect(firstDeclaredValue(css, "word-break")).toBe("normal")
 		expect(properties(css)).toEqual(["font-family", "line-height", "word-break"])
 	})
 
