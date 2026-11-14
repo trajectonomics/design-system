@@ -100,3 +100,22 @@ above.
   (`INTER-OFL-1.1.txt`), not the artwork's NOTICE. `typography.css` stays system-only: no
   `@font-face` and no font file, so the zero-payload default is unchanged, and consumers keep
   owning their `--font-*` variable assignment.
+
+## Amendment: Semantic Token Contract v2 (length and fontFamily roles)
+
+- 2026-11-14: the approved Spec `trajectonomics/design-system#60` extends the Contract to version 2
+  with 25 `length` and `fontFamily` roles: `radius.sm|md|lg|xl`, `space.1`–`space.10`, `space.12`,
+  `space.16`, `font.family.sans`, `font.family.mono` and `font.size.xs|sm|base|lg|xl|2xl|3xl`. The
+  `--ds-*` custom properties for these roles, and the Tailwind Theme Stylesheet's mapped names
+  (`--radius-*`, `--spacing-*`, `--font-*`, `--text-*` alongside `--color-*`), join the Web Consumer
+  Contract. This supersedes the "utility colour names" clause above, the "No new roles for this"
+  clause, and the System Typography Stylesheet amendment's "prebuilt Theme CSS stays colour-only" and
+  "`fontFamily` stays a Token Type with no role" lines. Compatibility follows the per-surface rule
+  above unchanged: additive (a minor release) on the CSS surface; breaking for `defineTheme` callers,
+  so it ships with Contract version 2, a `feat!` commit, explicit peer ranges (`^0.1.0-alpha.3` on
+  `@trajectonomics/design-system` in `theme` and `svelte`, `^0.1.0-alpha.4` on
+  `@trajectonomics/design-system-theme` in `svelte`, on the current pre-`0.1.0` alpha line) and release
+  order `core` → `theme` → `svelte`. Shadow roles stay out: no Token Type accepts a shadow literal, so
+  a `shadow` Token Type or composed shadow roles are a separate Spec. The System Typography
+  Stylesheet stays unchanged and optional; the built-in Themes' `font.family.sans` carries the same
+  system stack.
