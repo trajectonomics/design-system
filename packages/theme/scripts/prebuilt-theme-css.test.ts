@@ -15,9 +15,13 @@ describe("prebuilt Theme CSS", () => {
 		expect(lightCss).toContain('[data-theme="light"] {')
 		expect(lightCss).toContain("--ds-color-background: #ffffff;")
 		expect(lightCss).toContain("--ds-color-primary: #171717;")
+		expect(lightCss).toContain("--ds-color-accent: #c2410c;")
+		expect(lightCss).toContain("--ds-color-accent-foreground: #ffffff;")
 		expect(darkCss).toContain('[data-theme="dark"] {')
 		expect(darkCss).toContain("--ds-color-background: #0a0a0a;")
 		expect(darkCss).toContain("--ds-color-primary: #e5e5e5;")
+		expect(darkCss).toContain("--ds-color-accent: #ea580c;")
+		expect(darkCss).toContain("--ds-color-accent-foreground: #0a0a0a;")
 	})
 
 	it("writes the files that match the public emitter output", async () => {
