@@ -89,3 +89,14 @@ above.
   meets the marketing page's ban on font files; it is not a ban on a self-hosted face under a later
   spec. Social images and page layout stay out of this repository. Where a social image lives is
   not decided here.
+
+## Amendment: Brand Typeface exports in the assets package
+
+- 2026-11-14: the assets package ships the Brand Typeface (the Glossary's new term) as opt-in
+  `./fonts/*` exports — `./fonts/inter.css` plus the Inter woff2 files —
+  (`trajectonomics/design-system#61`). Those subpaths are the assets package's own contract, pinned
+  by its own tests, not part of the Web Consumer Contract above; adding them is additive (a minor
+  release). The Brand Typeface is licensed under the SIL Open Font License 1.1
+  (`INTER-OFL-1.1.txt`), not the artwork's NOTICE. `typography.css` stays system-only: no
+  `@font-face` and no font file, so the zero-payload default is unchanged, and consumers keep
+  owning their `--font-*` variable assignment.
