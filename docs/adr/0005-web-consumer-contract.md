@@ -48,7 +48,7 @@ every Tailwind consumer.
 
 **No new roles for this.** Fonts, radius, sidebar and chart roles stay out until a component, or
 the docs design decision (`trajectonomics/docs#10`), names a need (ADR 0003). That would be a
-separate Spec.
+separate Spec. A System Typography Stylesheet may ship without those roles; see the amendment.
 
 **Brand Assets are a separate leaf package.** Logo mark, wordmark and Favicon Set publish as
 `@trajectonomics/design-system-assets`: static files with no dependencies and no peer dependencies,
@@ -77,3 +77,15 @@ above.
   `core` bump.
 - Consumers must set `data-theme` themselves; the cost of one attribute buys a Theme list with no
   special case.
+
+## Amendment: System Typography Stylesheet
+
+- 2026-11-14: the theme package gains an optional CSS export, `./typography.css`, the System
+  Typography Stylesheet (`trajectonomics/design-system#53`). It is part of the Web Consumer
+  Contract's CSS export list. Adding the export is additive (a minor release). It adds no Semantic
+  Token Role, and prebuilt Theme CSS stays colour-only. `fontFamily` stays a Token Type with no
+  role. A later Component that needs a font-family role is still a separate Spec, as "No new roles
+  for this" says. The sheet uses system fonts only: no `@font-face` and no font file. That choice
+  meets the marketing page's ban on font files; it is not a ban on a self-hosted face under a later
+  spec. Social images and page layout stay out of this repository. Where a social image lives is
+  not decided here.

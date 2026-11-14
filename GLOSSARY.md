@@ -34,6 +34,9 @@ Theme CSS that ships as ready-to-import files for the built-in Themes. It comes 
 ### Tailwind Theme Stylesheet
 A stylesheet that maps Tailwind utility colours onto Theme CSS, so utilities follow the active Theme.
 
+### System Typography Stylesheet
+Optional CSS a consumer imports so text on a themed element uses a system font stack with Thai glyph coverage, a line height that fits Thai vowels, and normal word breaking so Thai clusters stay intact. It is not a Theme, not a Semantic Token, and it loads no font file.
+
 ### Web Consumer Contract
 The stable surface a non-Svelte app may depend on: the `--ds-` custom properties, the `data-theme` selector that scopes them, the Tailwind Theme Stylesheet's colour names and the `theme` package's CSS exports. A change to it follows the per-surface compatibility rule in ADR 0005.
 
