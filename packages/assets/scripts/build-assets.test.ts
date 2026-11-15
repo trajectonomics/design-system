@@ -10,6 +10,9 @@ import {
 	faviconPngs,
 } from "./brand-assets"
 import {
+	brandFontSubsets,
+	brandStylesheets,
+	brandTypefaceExportPaths,
 	brandTypefaceStylesheet,
 	brandTypefaceStylesheetExportPath,
 	brandTypefaceSubsets,
@@ -42,9 +45,9 @@ async function builtExport(exportPath: string): Promise<Uint8Array> {
 }
 
 describe("Brand Asset build", () => {
-	it("writes every exported Brand Asset into the output directory", async () => {
+	it("writes every exported file into the output directory, so every export resolves", async () => {
 		const missing: string[] = []
-		for (const exportPath of brandAssetExportPaths) {
+		for (const exportPath of [...brandAssetExportPaths, ...brandTypefaceExportPaths]) {
 			if (!(await Bun.file(join(outputDirectory, distPath(exportPath))).exists())) {
 				missing.push(exportPath)
 			}
@@ -107,10 +110,18 @@ describe("Brand Asset build", () => {
 
 describe("Brand Typeface build", () => {
 	it("ships every woff2 subset byte-identical to the vendored source", async () => {
-		for (const subset of brandTypefaceSubsets) {
+		for (const subset of [...brandTypefaceSubsets, ...brandFontSubsets]) {
 			const source = await readFile(join(FONTS_DIRECTORY, subset.sourceName))
 
 			expect(await builtExport(subset.exportPath)).toEqual(new Uint8Array(source))
+		}
+	})
+
+	it("ships every checked-in stylesheet byte-identical to the vendored source", async () => {
+		for (const stylesheet of brandStylesheets) {
+			const source = await readFile(join(FONTS_DIRECTORY, stylesheet.sourceName), "utf8")
+
+			expect(new TextDecoder().decode(await builtExport(stylesheet.exportPath))).toBe(source)
 		}
 	})
 

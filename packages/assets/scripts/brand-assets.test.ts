@@ -124,9 +124,13 @@ describe("Brand Asset manifest", () => {
 		expect(await Bun.file(join(PACKAGE_ROOT, "INTER-OFL-1.1.txt")).exists()).toBe(true)
 	})
 
-	it("ships the Brand Typeface's OFL licence text in the tarball", async () => {
+	it("ships every Brand Typeface family's OFL licence text in the tarball", async () => {
 		const manifest = await packageManifest()
+		const oflLicences = ["INTER-OFL-1.1.txt", "ALEO-OFL-1.1.txt", "AZERET-MONO-OFL-1.1.txt"]
 
-		expect(manifest.files).toContain("INTER-OFL-1.1.txt")
+		for (const licence of oflLicences) {
+			expect(manifest.files).toContain(licence)
+			expect(await Bun.file(join(PACKAGE_ROOT, licence)).exists()).toBe(true)
+		}
 	})
 })

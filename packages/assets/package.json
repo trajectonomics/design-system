@@ -1,7 +1,7 @@
 {
 	"name": "@trajectonomics/design-system-assets",
 	"version": "0.0.0-development",
-	"description": "Trajectonomics design system: Brand Assets (logo mark, wordmark and Favicon Set) and the Brand Typeface (Inter woff2 and its @font-face stylesheet)",
+	"description": "Trajectonomics design system: Brand Assets (logo mark, wordmark and Favicon Set) and the Brand Typeface (Inter, Aleo and Azeret Mono woff2 and their @font-face stylesheets)",
 	"license": "SEE LICENSE IN NOTICE",
 	"repository": {
 		"type": "git",
@@ -28,14 +28,20 @@
 		"./favicon/icon-192.png": "./dist/favicon/icon-192.png",
 		"./favicon/icon-512.png": "./dist/favicon/icon-512.png",
 		"./fonts/inter.css": "./dist/fonts/inter.css",
+		"./fonts/brand.css": "./dist/fonts/brand.css",
 		"./fonts/inter-latin-wght.woff2": "./dist/fonts/inter-latin-wght.woff2",
 		"./fonts/inter-latin-ext-wght.woff2": "./dist/fonts/inter-latin-ext-wght.woff2",
+		"./fonts/aleo-latin-300.woff2": "./dist/fonts/aleo-latin-300.woff2",
+		"./fonts/aleo-latin-400.woff2": "./dist/fonts/aleo-latin-400.woff2",
+		"./fonts/azeret-mono-latin-500.woff2": "./dist/fonts/azeret-mono-latin-500.woff2",
 		"./package.json": "./package.json"
 	},
 	"files": [
 		"dist",
 		"NOTICE",
-		"INTER-OFL-1.1.txt"
+		"INTER-OFL-1.1.txt",
+		"ALEO-OFL-1.1.txt",
+		"AZERET-MONO-OFL-1.1.txt"
 	],
 	"publishConfig": {
 		"access": "public",
@@ -47,7 +53,7 @@
 		"test": "bun test",
 		"typecheck": "tsc -p tsconfig.json",
 		"lint": "biome ci --error-on-warnings .",
-		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./logo/mark.svg ./logo/wordmark.svg ./logo/mark-on-light.svg ./logo/mark-on-dark.svg ./logo/wordmark-on-light.svg ./logo/wordmark-on-dark.svg ./favicon/favicon.svg ./favicon/favicon.ico ./favicon/apple-touch-icon.png ./favicon/icon-192.png ./favicon/icon-512.png ./fonts/inter.css ./fonts/inter-latin-wght.woff2 ./fonts/inter-latin-ext-wght.woff2"
+		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./logo/mark.svg ./logo/wordmark.svg ./logo/mark-on-light.svg ./logo/mark-on-dark.svg ./logo/wordmark-on-light.svg ./logo/wordmark-on-dark.svg ./favicon/favicon.svg ./favicon/favicon.ico ./favicon/apple-touch-icon.png ./favicon/icon-192.png ./favicon/icon-512.png ./fonts/inter.css ./fonts/brand.css ./fonts/inter-latin-wght.woff2 ./fonts/inter-latin-ext-wght.woff2 ./fonts/aleo-latin-300.woff2 ./fonts/aleo-latin-400.woff2 ./fonts/azeret-mono-latin-500.woff2"
 	},
 	"devDependencies": {
 		"@resvg/resvg-wasm": "^2.6.2",

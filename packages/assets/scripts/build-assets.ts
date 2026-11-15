@@ -14,6 +14,8 @@ import {
 	faviconSvgExportPath,
 } from "./brand-assets"
 import {
+	brandFontSubsets,
+	brandStylesheets,
 	brandTypefaceStylesheet,
 	brandTypefaceStylesheetExportPath,
 	brandTypefaceSubsets,
@@ -79,11 +81,18 @@ export async function buildAssets({
 
 	// The Brand Typeface ships as the vendored woff2 bytes plus the stylesheet
 	// generated from the same data, so the CSS can never drift from the files.
-	for (const subset of brandTypefaceSubsets) {
+	for (const subset of [...brandTypefaceSubsets, ...brandFontSubsets]) {
 		await writeAsset(
 			outputDirectory,
 			subset.exportPath,
 			await readFile(join(fontsDirectory, subset.sourceName)),
+		)
+	}
+	for (const stylesheet of brandStylesheets) {
+		await writeAsset(
+			outputDirectory,
+			stylesheet.exportPath,
+			await readFile(join(fontsDirectory, stylesheet.sourceName), "utf8"),
 		)
 	}
 	await writeAsset(outputDirectory, brandTypefaceStylesheetExportPath, brandTypefaceStylesheet())
