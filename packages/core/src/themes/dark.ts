@@ -27,6 +27,8 @@ const rolePrimitives: RolePrimitives = {
 	"color.border": neutral800,
 	"color.input": neutral800,
 	"color.ring": neutral500,
+	"color.stage": neutral950,
+	"color.stage.foreground": neutral50,
 }
 
 /** The built-in dark Theme. */

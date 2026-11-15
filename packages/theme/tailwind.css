@@ -18,6 +18,8 @@
 	--color-border: var(--ds-color-border);
 	--color-input: var(--ds-color-input);
 	--color-ring: var(--ds-color-ring);
+	--color-stage: var(--ds-color-stage);
+	--color-stage-foreground: var(--ds-color-stage-foreground);
 	--radius-sm: var(--ds-radius-sm);
 	--radius-md: var(--ds-radius-md);
 	--radius-lg: var(--ds-radius-lg);
