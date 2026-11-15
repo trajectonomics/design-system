@@ -21,6 +21,8 @@ export type SemanticTokenName =
 	| "color.border"
 	| "color.input"
 	| "color.ring"
+	| "color.stage"
+	| "color.stage.foreground"
 	| "radius.sm"
 	| "radius.md"
 	| "radius.lg"
@@ -79,6 +81,8 @@ const ROLE_TYPES: Readonly<Record<SemanticTokenName, TokenType>> = {
 	"color.border": "color",
 	"color.input": "color",
 	"color.ring": "color",
+	"color.stage": "color",
+	"color.stage.foreground": "color",
 	"radius.sm": "length",
 	"radius.md": "length",
 	"radius.lg": "length",
@@ -113,7 +117,7 @@ export const CONTRACT_ROLE_NAMES: readonly SemanticTokenName[] = Object.freeze(
 
 /** The versioned, closed Semantic Token Contract that every Theme resolves. */
 export const semanticTokenContract: SemanticTokenContract = Object.freeze({
-	version: 2,
+	version: 3,
 	roles: Object.freeze(
 		CONTRACT_ROLE_NAMES.map((name) => Object.freeze({ name, type: ROLE_TYPES[name] })),
 	),

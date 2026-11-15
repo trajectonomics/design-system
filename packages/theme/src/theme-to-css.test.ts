@@ -25,6 +25,8 @@ const CUSTOM_CSS = `[data-theme="brand-ocean"] {
   --ds-color-border: #123456;
   --ds-color-input: #123456;
   --ds-color-ring: #123456;
+  --ds-color-stage: #123456;
+  --ds-color-stage-foreground: #123456;
   --ds-radius-sm: 1rem;
   --ds-radius-md: 1rem;
   --ds-radius-lg: 1rem;

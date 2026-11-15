@@ -8,6 +8,7 @@ export interface PrimitiveTokenPalette {
 	readonly neutral200: PrimitiveToken
 	readonly neutral400: PrimitiveToken
 	readonly neutral500: PrimitiveToken
+	readonly neutral600: PrimitiveToken
 	readonly neutral800: PrimitiveToken
 	readonly neutral900: PrimitiveToken
 	readonly neutral950: PrimitiveToken
@@ -44,6 +45,7 @@ export const primitiveTokens: PrimitiveTokenPalette = Object.freeze({
 	neutral200: createPrimitiveToken({ name: "color.neutral.200", type: "color", value: "#e5e5e5" }),
 	neutral400: createPrimitiveToken({ name: "color.neutral.400", type: "color", value: "#a1a1a1" }),
 	neutral500: createPrimitiveToken({ name: "color.neutral.500", type: "color", value: "#737373" }),
+	neutral600: createPrimitiveToken({ name: "color.neutral.600", type: "color", value: "#525252" }),
 	neutral800: createPrimitiveToken({ name: "color.neutral.800", type: "color", value: "#262626" }),
 	neutral900: createPrimitiveToken({ name: "color.neutral.900", type: "color", value: "#171717" }),
 	neutral950: createPrimitiveToken({ name: "color.neutral.950", type: "color", value: "#0a0a0a" }),

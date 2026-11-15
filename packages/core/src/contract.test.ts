@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test"
 import { semanticTokenContract } from "./index"
 
-/** Every role of Semantic Token Contract v2, with its Token Type, in Contract order. */
-const V2_ROLES: [string, string][] = [
+/** Every role of Semantic Token Contract v3, with its Token Type, in Contract order. */
+const V3_ROLES: [string, string][] = [
 	["color.background", "color"],
 	["color.foreground", "color"],
 	["color.card", "color"],
@@ -22,6 +22,8 @@ const V2_ROLES: [string, string][] = [
 	["color.border", "color"],
 	["color.input", "color"],
 	["color.ring", "color"],
+	["color.stage", "color"],
+	["color.stage.foreground", "color"],
 	["radius.sm", "length"],
 	["radius.md", "length"],
 	["radius.lg", "length"],
@@ -50,12 +52,12 @@ const V2_ROLES: [string, string][] = [
 ]
 
 describe("Semantic Token Contract", () => {
-	it("is version 2", () => {
-		expect(semanticTokenContract.version).toBe(2)
+	it("is version 3", () => {
+		expect(semanticTokenContract.version).toBe(3)
 	})
 
-	it("is the closed v2 role set, colours first, each role with its Token Type", () => {
-		expect(semanticTokenContract.roles.map((role) => [role.name, role.type])).toEqual(V2_ROLES)
+	it("is the closed v3 role set, colours first, each role with its Token Type", () => {
+		expect(semanticTokenContract.roles.map((role) => [role.name, role.type])).toEqual(V3_ROLES)
 	})
 
 	it("is closed: the Contract and every role are frozen", () => {

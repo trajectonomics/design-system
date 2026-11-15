@@ -119,3 +119,27 @@ above.
   a `shadow` Token Type or composed shadow roles are a separate Spec. The System Typography
   Stylesheet stays unchanged and optional; the built-in Themes' `font.family.sans` carries the same
   system stack.
+
+## Amendment: Semantic Token Contract v3 (the stage surface, and an AA muted foreground)
+
+- 2026-11-15: `trajectonomics/design-system#75` adds two colour roles, `color.stage` and
+  `color.stage.foreground`, and moves the light Theme's `color.muted.foreground` from
+  `neutral.500` (`#737373`) to the new `neutral.600` (`#525252`).
+
+  The stage pair exists because a consumer painting its page on `color.muted` needs a closing band
+  that stays dark in both Themes: `color.primary` cannot serve, since it is `#171717` in the light
+  Theme and `#e5e5e5` in the dark one, so a footer painted with it becomes a light band on a
+  near-black page. `color.stage` is `neutral.900` (`#171717`) in the light Theme and `neutral.950`
+  (`#0a0a0a`) in the dark one, with `neutral.50` as its foreground in both. No new Primitive Token
+  is needed for it.
+
+  The `muted.foreground` change fixes a contrast failure on the Theme's own terms:
+  `neutral.500` on `neutral.100` is **4.35:1**, under the WCAG AA 4.5:1 floor for normal text, so
+  any consumer that puts secondary text on a `color.muted` surface fails its contrast check.
+  `neutral.600` is **6.9:1** there. The dark Theme is already 5.8:1 and stays unchanged.
+
+  Compatibility follows the per-surface rule above: additive on the CSS surface (the two
+  `--ds-color-stage*` properties and the `--color-stage*` mappings join the Web Consumer Contract,
+  a minor release); breaking for `defineTheme` callers, because the closed role set grew, so it
+  ships with Contract version 3 and a `feat!` commit. Release order `core` → `theme` → `svelte`.
+  The existing peer ranges stay correct: `^0.1.0-alpha.3` admits the next `0.1.0-alpha.*`.

@@ -17,7 +17,7 @@ describe("built-in Primitive Tokens", () => {
 		expect(new Set(tokens.map((token) => token.value)).size).toBe(tokens.length)
 	})
 
-	it("hold the 16 length values and 2 font stacks Contract v2 needs", () => {
+	it("hold the 16 length values and 2 font stacks Contract v3 needs", () => {
 		const tokens = Object.values(primitiveTokens)
 		const valuesOf = (type: string) =>
 			tokens

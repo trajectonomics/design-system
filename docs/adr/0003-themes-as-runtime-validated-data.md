@@ -114,3 +114,11 @@ These guardrails are the parts that must exist now, and each is enforced by at l
   clause above deferred to. The colour role list above remains the v1 colour set; the closed-world and
   version-bump rules in this ADR apply unchanged — every Theme resolves the new roles, and
   `defineTheme` rejects a Theme that misses one with `MISSING_CONTRACT_ROLE`.
+
+## Amendment: Semantic Token Contract v3
+
+- 2026-11-15: `trajectonomics/design-system#75` extends the Contract to version 3 with the colour
+  pair `color.stage` and `color.stage.foreground`, and moves the light Theme's
+  `color.muted.foreground` to `neutral.600` for WCAG AA on `color.muted`. The colour role list above
+  remains the v1 colour set, and the closed-world, version-bump and `MISSING_CONTRACT_ROLE` rules
+  apply unchanged.

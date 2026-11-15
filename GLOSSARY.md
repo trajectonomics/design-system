@@ -37,6 +37,10 @@ A stylesheet that maps Tailwind theme variables onto Theme CSS, so utilities fol
 ### System Typography Stylesheet
 Optional CSS a consumer imports so text on a themed element uses a system font stack with Thai glyph coverage, a line height that fits Thai vowels, and normal word breaking so Thai clusters stay intact. It is not a Theme, not a Semantic Token, and it loads no font file.
 
+### Stage Surface
+The surface a page's closing band sits on: dark in every Theme, so it reads as a stage rather than as
+the page inverted. It is resolved by the `color.stage` and `color.stage.foreground` roles.
+
 ### Web Consumer Contract
 The stable surface a non-Svelte app may depend on: the `--ds-` custom properties, the `data-theme` selector that scopes them, the Tailwind Theme Stylesheet's mapped names and the `theme` package's CSS exports. A change to it follows the per-surface compatibility rule in ADR 0005.
 

@@ -2,7 +2,7 @@ import { primitiveTokens } from "../primitives"
 import { defineBuiltInTheme, type RolePrimitives, type Theme } from "../theme"
 import { nonColorRolePrimitives } from "./non-color-roles"
 
-const { white, neutral50, neutral100, neutral200, neutral400, neutral500, neutral900, neutral950 } =
+const { white, neutral50, neutral100, neutral200, neutral400, neutral600, neutral900, neutral950 } =
 	primitiveTokens
 const { red600, orange700 } = primitiveTokens
 
@@ -19,7 +19,7 @@ const rolePrimitives: RolePrimitives = {
 	"color.secondary": neutral100,
 	"color.secondary.foreground": neutral900,
 	"color.muted": neutral100,
-	"color.muted.foreground": neutral500,
+	"color.muted.foreground": neutral600,
 	"color.accent": orange700,
 	"color.accent.foreground": white,
 	"color.destructive": red600,
@@ -27,6 +27,8 @@ const rolePrimitives: RolePrimitives = {
 	"color.border": neutral200,
 	"color.input": neutral200,
 	"color.ring": neutral400,
+	"color.stage": neutral900,
+	"color.stage.foreground": neutral50,
 }
 
 /** The built-in light Theme. */
