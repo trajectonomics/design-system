@@ -9,6 +9,7 @@ import {
 	faviconPngs,
 	faviconSvgExportPath,
 } from "./brand-assets"
+import { brandTypefaceExportPaths } from "./brand-typeface"
 
 const PACKAGE_ROOT = join(import.meta.dir, "..")
 const BRAND_SOURCE_SVG = join(PACKAGE_ROOT, "..", "..", "brand-source", "svg")
@@ -43,19 +44,19 @@ function brightness(hex: string): number {
 }
 
 describe("Brand Asset manifest", () => {
-	it("pins the package exports to exactly the Brand Assets it ships", async () => {
+	it("pins the package exports to exactly the Brand Assets and Brand Typeface it ships", async () => {
 		const manifest = await packageManifest()
 		const exported = Object.keys(manifest.exports)
 			.filter((subpath) => subpath !== "./package.json")
 			.sort()
 
-		expect(exported).toEqual([...brandAssetExportPaths].sort())
+		expect(exported).toEqual([...brandAssetExportPaths, ...brandTypefaceExportPaths].sort())
 	})
 
 	it("serves every export from the built dist directory", async () => {
 		const manifest = await packageManifest()
 
-		for (const subpath of brandAssetExportPaths) {
+		for (const subpath of [...brandAssetExportPaths, ...brandTypefaceExportPaths]) {
 			expect(manifest.exports[subpath]).toBe(`./dist/${distPath(subpath)}`)
 		}
 	})
@@ -121,5 +122,11 @@ describe("Brand Asset manifest", () => {
 		expect(manifest.files).toContain("NOTICE")
 		expect(await Bun.file(join(PACKAGE_ROOT, "NOTICE")).exists()).toBe(true)
 		expect(await Bun.file(join(PACKAGE_ROOT, "INTER-OFL-1.1.txt")).exists()).toBe(true)
+	})
+
+	it("ships the Brand Typeface's OFL licence text in the tarball", async () => {
+		const manifest = await packageManifest()
+
+		expect(manifest.files).toContain("INTER-OFL-1.1.txt")
 	})
 })

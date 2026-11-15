@@ -9,18 +9,28 @@ import {
 	faviconIco,
 	faviconPngs,
 } from "./brand-assets"
+import {
+	brandTypefaceStylesheet,
+	brandTypefaceStylesheetExportPath,
+	brandTypefaceSubsets,
+} from "./brand-typeface"
 import { buildAssets } from "./build-assets"
 import { pngSize, readIcoSizes } from "./raster"
 import { inspectSvg } from "./svg-safety"
 
 const PACKAGE_ROOT = join(import.meta.dir, "..")
 const BRAND_SOURCE_SVG = join(PACKAGE_ROOT, "..", "..", "brand-source", "svg")
+const FONTS_DIRECTORY = join(PACKAGE_ROOT, "fonts")
 
 let outputDirectory: string
 
 beforeAll(async () => {
 	outputDirectory = await mkdtemp(join(tmpdir(), "ds-assets-build-"))
-	await buildAssets({ sourceDirectory: BRAND_SOURCE_SVG, outputDirectory })
+	await buildAssets({
+		sourceDirectory: BRAND_SOURCE_SVG,
+		fontsDirectory: FONTS_DIRECTORY,
+		outputDirectory,
+	})
 })
 
 afterAll(async () => {
@@ -73,6 +83,7 @@ describe("Brand Asset build", () => {
 
 	it("refuses to ship an SVG that carries active content", async () => {
 		const source = await mkdtemp(join(tmpdir(), "ds-assets-source-"))
+		const rejectedOutput = await mkdtemp(join(tmpdir(), "ds-assets-rejected-"))
 		try {
 			await cp(BRAND_SOURCE_SVG, source, { recursive: true })
 			await writeFile(
@@ -80,11 +91,44 @@ describe("Brand Asset build", () => {
 				'<svg viewBox="0 0 1 1"><script>alert(1)</script></svg>',
 			)
 
-			await expect(buildAssets({ sourceDirectory: source, outputDirectory })).rejects.toThrow(
-				/script/,
-			)
+			await expect(
+				buildAssets({
+					sourceDirectory: source,
+					fontsDirectory: FONTS_DIRECTORY,
+					outputDirectory: rejectedOutput,
+				}),
+			).rejects.toThrow(/script/)
 		} finally {
 			await rm(source, { recursive: true, force: true })
+			await rm(rejectedOutput, { recursive: true, force: true })
+		}
+	})
+})
+
+describe("Brand Typeface build", () => {
+	it("ships every woff2 subset byte-identical to the vendored source", async () => {
+		for (const subset of brandTypefaceSubsets) {
+			const source = await readFile(join(FONTS_DIRECTORY, subset.sourceName))
+
+			expect(await builtExport(subset.exportPath)).toEqual(new Uint8Array(source))
+		}
+	})
+
+	it("writes the @font-face stylesheet generated from the Brand Typeface data", async () => {
+		const css = new TextDecoder().decode(await builtExport(brandTypefaceStylesheetExportPath))
+
+		expect(css).toBe(brandTypefaceStylesheet())
+	})
+
+	it("gives the stylesheet one complete unicode-range per subset and swap display", async () => {
+		const css = new TextDecoder().decode(await builtExport(brandTypefaceStylesheetExportPath))
+		const ranges = [...css.matchAll(/unicode-range: ([^;]+);/g)].map((match) => match[1] ?? "")
+
+		expect(ranges).toEqual(brandTypefaceSubsets.map((subset) => subset.unicodeRange))
+		expect(css).toContain("font-display: swap;")
+		expect(css).toContain("font-weight: 100 900;")
+		for (const subset of brandTypefaceSubsets) {
+			expect(css).toContain(`url("./${subset.sourceName}")`)
 		}
 	})
 })

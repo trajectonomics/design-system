@@ -3,8 +3,21 @@
 @import "@trajectonomics/design-system-theme/themes/dark.css";
 @import "@trajectonomics/design-system-theme/tailwind.css";
 @import "@trajectonomics/design-system-theme/typography.css";
+@import "@trajectonomics/design-system-assets/fonts/inter.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* The consumer owns its --font-* assignment: the Brand Typeface stylesheet
+   only declares the @font-face rules, and this stack keeps Thai coverage. */
+:root {
+	--font-sans:
+		"Inter Variable", ui-sans-serif, system-ui, "Segoe UI", "Leelawadee UI", Thonburi,
+		"Noto Sans Thai", sans-serif;
+}
+
+[data-theme] {
+	font-family: var(--font-sans);
+}
 
 body {
 	margin: 0;
