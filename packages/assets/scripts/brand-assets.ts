@@ -33,6 +33,7 @@ export const brandAssetSvgs: readonly BrandAssetSvg[] = Object.freeze([
 		sourceName: "wordmark-on-light.svg",
 	}),
 	Object.freeze({ exportPath: "./logo/wordmark-on-dark.svg", sourceName: "wordmark-on-dark.svg" }),
+	Object.freeze({ exportPath: "./logo/mark-tile.svg", sourceName: "mark-tile.svg" }),
 	Object.freeze({ exportPath: faviconSvgExportPath, sourceName: "favicon.svg" }),
 ])
 

@@ -22,6 +22,7 @@
 		"./logo/mark-on-dark.svg": "./dist/logo/mark-on-dark.svg",
 		"./logo/wordmark-on-light.svg": "./dist/logo/wordmark-on-light.svg",
 		"./logo/wordmark-on-dark.svg": "./dist/logo/wordmark-on-dark.svg",
+		"./logo/mark-tile.svg": "./dist/logo/mark-tile.svg",
 		"./favicon/favicon.svg": "./dist/favicon/favicon.svg",
 		"./favicon/favicon.ico": "./dist/favicon/favicon.ico",
 		"./favicon/apple-touch-icon.png": "./dist/favicon/apple-touch-icon.png",
@@ -53,7 +54,7 @@
 		"test": "bun test",
 		"typecheck": "tsc -p tsconfig.json",
 		"lint": "biome ci --error-on-warnings .",
-		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./logo/mark.svg ./logo/wordmark.svg ./logo/mark-on-light.svg ./logo/mark-on-dark.svg ./logo/wordmark-on-light.svg ./logo/wordmark-on-dark.svg ./favicon/favicon.svg ./favicon/favicon.ico ./favicon/apple-touch-icon.png ./favicon/icon-192.png ./favicon/icon-512.png ./fonts/inter.css ./fonts/brand.css ./fonts/inter-latin-wght.woff2 ./fonts/inter-latin-ext-wght.woff2 ./fonts/aleo-latin-300.woff2 ./fonts/aleo-latin-400.woff2 ./fonts/azeret-mono-latin-500.woff2"
+		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./logo/mark.svg ./logo/wordmark.svg ./logo/mark-on-light.svg ./logo/mark-on-dark.svg ./logo/wordmark-on-light.svg ./logo/wordmark-on-dark.svg ./logo/mark-tile.svg ./favicon/favicon.svg ./favicon/favicon.ico ./favicon/apple-touch-icon.png ./favicon/icon-192.png ./favicon/icon-512.png ./fonts/inter.css ./fonts/brand.css ./fonts/inter-latin-wght.woff2 ./fonts/inter-latin-ext-wght.woff2 ./fonts/aleo-latin-300.woff2 ./fonts/aleo-latin-400.woff2 ./fonts/azeret-mono-latin-500.woff2"
 	},
 	"devDependencies": {
 		"@resvg/resvg-wasm": "^2.6.2",

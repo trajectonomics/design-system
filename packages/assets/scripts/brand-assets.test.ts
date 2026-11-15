@@ -43,6 +43,20 @@ function brightness(hex: string): number {
 	return channels.reduce((total, channel) => total + channel, 0) / (3 * 255)
 }
 
+/** The `d` attribute of an SVG's path: the mark's geometry, as written. */
+function pathGeometry(svg: string): string {
+	return svg.match(/<path[^>]*\bd="([^"]+)"/)?.[1] ?? ""
+}
+
+/** The fill an SVG's own style gives an element in the light and in the dark scheme. */
+function schemeFills(svg: string, element: string): { light: string; dark: string } {
+	const style = svg.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? ""
+	const darkBlock = style.split("@media (prefers-color-scheme:dark){")[1] ?? ""
+	const fill = (block: string): string =>
+		block.match(new RegExp(`${element}\\{fill:(#[0-9a-fA-F]{3,6})\\}`))?.[1] ?? ""
+	return { light: fill(style), dark: fill(darkBlock) }
+}
+
 describe("Brand Asset manifest", () => {
 	it("pins the package exports to exactly the Brand Assets and Brand Typeface it ships", async () => {
 		const manifest = await packageManifest()
@@ -114,6 +128,56 @@ describe("Brand Asset manifest", () => {
 
 	it("lets the favicon SVG follow the reader's colour scheme", async () => {
 		expect(await sourceSvg(faviconSvgExportPath)).toContain("prefers-color-scheme")
+	})
+
+	it("draws the tiled mark and the favicon on a real rect of radius 6/40 of the size", async () => {
+		for (const exportPath of ["./logo/mark-tile.svg", faviconSvgExportPath]) {
+			const svg = await sourceSvg(exportPath)
+			const viewBox = Number(svg.match(/viewBox="0 0 (\d+) (\d+)"/)?.[1])
+			const rect = svg.match(/<rect([^>]*)\/>/)?.[1] ?? ""
+			const rx = Number(rect.match(/\brx="([\d.]+)"/)?.[1])
+
+			expect({ exportPath, viewBox, rx, expected: (viewBox * 6) / 40 }).toEqual({
+				exportPath,
+				viewBox,
+				rx,
+				expected: (viewBox * 6) / 40,
+			})
+			expect(rect).toContain(`width="${viewBox}"`)
+			expect(rect).toContain(`height="${viewBox}"`)
+		}
+	})
+
+	it("keeps the tiled mark's silhouette exactly the plain mark's", async () => {
+		const mark = await sourceSvg("./logo/mark.svg")
+		const tile = await sourceSvg("./logo/mark-tile.svg")
+
+		expect(pathGeometry(tile)).toBe(pathGeometry(mark))
+		expect(pathGeometry(tile)).not.toBe("")
+	})
+
+	it("keeps the favicon's mark geometry exactly as the owner drew it", async () => {
+		expect(pathGeometry(await sourceSvg(faviconSvgExportPath))).toBe(
+			"M118.9 336.2 L524.6 336.2 L357.5 507.6 L118.9 507.6 Z M361.9 928.0 L529.8 928.0 L529.8 572.0 L786.6 307.0 L858.1 380.8 L905.1 96.0 L626.2 152.1 L699.6 224.0 L361.9 572.0 Z",
+		)
+	})
+
+	it("paints the tile near-black with a near-white mark in light, and the inverse in dark", async () => {
+		for (const exportPath of ["./logo/mark-tile.svg", faviconSvgExportPath]) {
+			const svg = await sourceSvg(exportPath)
+			const tile = schemeFills(svg, "rect")
+			const mark = schemeFills(svg, "path")
+
+			expect({ exportPath, tile, mark, darkTile: brightness(tile.light) < 0.5 }).toEqual({
+				exportPath,
+				tile,
+				mark,
+				darkTile: true,
+			})
+			expect(brightness(mark.light) > 0.5).toBe(true)
+			expect(brightness(tile.dark) > 0.5).toBe(true)
+			expect(brightness(mark.dark) < 0.5).toBe(true)
+		}
 	})
 
 	it("keeps the owner's licence beside the art it governs", async () => {
