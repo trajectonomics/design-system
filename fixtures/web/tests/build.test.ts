@@ -45,6 +45,12 @@ describe("framework-free consumer build", () => {
 		expect(lightBackground).not.toBe(darkBackground)
 		expect(variableValue(light, "--ds-color-primary")).toBeDefined()
 		expect(variableValue(dark, "--ds-color-primary")).toBeDefined()
+		for (const block of [light, dark]) {
+			expect(variableValue(block, "--ds-radius-xl")).toMatch(/^0?\.75rem$/)
+			expect(variableValue(block, "--ds-space-4")).toBe("1rem")
+			expect(variableValue(block, "--ds-font-size-base")).toBe("1rem")
+			expect(variableValue(block, "--ds-font-family-sans")).toContain("ui-sans-serif")
+		}
 	})
 
 	it("resolves the Tailwind utilities against the Theme variables", async () => {
@@ -54,6 +60,10 @@ describe("framework-free consumer build", () => {
 			/\.text-primary-foreground\s*\{[^}]*color:\s*var\(--ds-color-primary-foreground\)/,
 		)
 		expect(css).toMatch(/\.border-border\s*\{[^}]*border-color:\s*var\(--ds-color-border\)/)
+		expect(css).toMatch(/\.rounded-xl\s*\{[^}]*border-radius:\s*var\(--ds-radius-xl\)/)
+		expect(css).toMatch(/\.p-4\s*\{[^}]*padding:\s*var\(--ds-space-4\)/)
+		expect(css).toMatch(/\.text-base\s*\{[^}]*font-size:\s*var\(--ds-font-size-base\)/)
+		expect(css).toMatch(/\.font-sans\s*\{[^}]*font-family:\s*var\(--ds-font-family-sans\)/)
 	})
 
 	it("compiles the documented dark variant against data-theme", async () => {
