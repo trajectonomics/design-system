@@ -20,6 +20,18 @@ describe("Button stylesheet", () => {
 		expect(css).toContain("background-color: var(--ds-color-accent);")
 	})
 
+	it("compiles the Button's radius, spacing and type utilities to the --ds- variables", async () => {
+		const css = await compileButtonStyles()
+		expect(css).toContain(".rounded-md {")
+		expect(css).toContain("border-radius: var(--ds-radius-md);")
+		expect(css).toContain(".h-9 {")
+		expect(css).toContain("height: var(--ds-space-9);")
+		expect(css).toContain(".px-4 {")
+		expect(css).toContain("padding-inline: var(--ds-space-4);")
+		expect(css).toContain(".text-sm {")
+		expect(css).toContain("font-size: var(--ds-font-size-sm);")
+	})
+
 	it("compiles the focus ring from the ring role", async () => {
 		const css = await compileButtonStyles()
 		expect(css).toContain(".focus-visible\\:ring-ring:focus-visible {")
