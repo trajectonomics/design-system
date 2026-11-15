@@ -21,7 +21,8 @@ so a bundler resolves it through the package's `exports` and a rename is a break
 | `./logo/mark-on-dark.svg` | The logo mark in white, for `<img>` on a dark background. |
 | `./logo/wordmark-on-light.svg` | The wordmark in black, for `<img>` on a light background. |
 | `./logo/wordmark-on-dark.svg` | The wordmark in white, for `<img>` on a dark background. |
-| `./favicon/favicon.svg` | The favicon, which follows `prefers-color-scheme` by itself. |
+| `./logo/mark-tile.svg` | The logo mark on its filled tile, which follows `prefers-color-scheme` by itself. |
+| `./favicon/favicon.svg` | The favicon: the mark on its tile, which follows `prefers-color-scheme` by itself. |
 | `./favicon/favicon.ico` | The favicon at 16, 32 and 48 px, for browsers without SVG favicons. |
 | `./favicon/apple-touch-icon.png` | The 180 px icon iOS uses for a home-screen bookmark. |
 | `./favicon/icon-192.png` | The 192 px icon for an Android home screen or a web manifest. |
@@ -54,7 +55,10 @@ Vue, Svelte and Astro.
 
 The `-on-light` and `-on-dark` files carry a fixed colour, so a background you cannot inspect still
 shows the mark. The plain `mark.svg` and `wordmark.svg` use `currentColor`: inline the file and they
-take the surrounding text colour, which is what a theme-aware header wants.
+take the surrounding text colour, which is what a theme-aware header wants. `mark-tile.svg` is the
+mark on its filled tile for `<img>` consumers that cannot compose a tile in CSS: the tile is
+near-black with a near-white mark under `prefers-color-scheme: light` and near-white with a dark
+mark under `dark`, matching the `bg-primary`/`text-primary-foreground` pair in both Themes.
 
 ## Using the Favicon Set
 
@@ -74,9 +78,10 @@ icon are the fallbacks:
 ```
 
 `favicon.svg` carries its own `prefers-color-scheme` rule, so the browser tab follows the reader's
-scheme with no script. The ICO and the PNGs cannot adapt: they are the light-mode rendering, the
-black mark on a transparent background. iOS composites a transparent Apple touch icon on black, so
-draw the mark on your own background if it must read on a dark home screen.
+scheme with no script: the mark sits on its tile, near-black with a near-white mark in light and
+near-white with a dark mark in dark. The ICO and the PNGs cannot adapt: they are the light-mode
+rendering, the near-white mark on the near-black tile, so they already carry their own background
+wherever a transparent icon would not read.
 
 ## Using the Brand Typeface
 
