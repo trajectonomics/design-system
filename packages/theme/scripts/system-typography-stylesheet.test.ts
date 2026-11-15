@@ -1,8 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
-import { semanticTokenContract } from "@trajectonomics/design-system"
-import { prebuiltThemeCss } from "./prebuilt-theme-css"
 
 const PACKAGE_ROOT = join(import.meta.dir, "..")
 const STYLESHEET_PATH = join(PACKAGE_ROOT, "typography.css")
@@ -144,14 +142,5 @@ describe("System Typography Stylesheet", () => {
 		expect(css).not.toContain("--ds-")
 		expect(css).not.toMatch(/#[0-9a-f]{3,8}\b/i)
 		expect(css).not.toMatch(/\b(?:rgb|hsl|oklch|lab|lch|color-mix)\(/)
-	})
-
-	it("leaves the prebuilt Theme CSS colour-only", () => {
-		for (const file of prebuiltThemeCss) expect(file.css).not.toContain("font-family")
-	})
-
-	it("leaves the Semantic Token Contract at version 1 with colour roles only", () => {
-		expect(semanticTokenContract.version).toBe(1)
-		for (const role of semanticTokenContract.roles) expect(role.type).toBe("color")
 	})
 })

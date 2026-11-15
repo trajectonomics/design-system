@@ -22,6 +22,13 @@ describe("prebuilt Theme CSS", () => {
 		expect(darkCss).toContain("--ds-color-primary: #e5e5e5;")
 		expect(darkCss).toContain("--ds-color-accent: #ea580c;")
 		expect(darkCss).toContain("--ds-color-accent-foreground: #0a0a0a;")
+		for (const css of [lightCss, darkCss]) {
+			expect(css).toContain("--ds-radius-xl: 0.75rem;")
+			expect(css).toContain("--ds-space-4: 1rem;")
+			expect(css).toContain("--ds-font-size-base: 1rem;")
+			expect(css).toContain("--ds-font-family-sans: ui-sans-serif, system-ui")
+			expect(css).toContain("--ds-font-family-mono: ui-monospace")
+		}
 	})
 
 	it("writes the files that match the public emitter output", async () => {

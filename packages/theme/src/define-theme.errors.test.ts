@@ -47,6 +47,21 @@ describe("defineTheme validation", () => {
 		)
 	})
 
+	it.each([
+		["radius.sm", "large"],
+		["space.4", "16"],
+		["font.size.base", "#123456"],
+		["font.family.sans", "1rem"],
+		["font.family.mono", "#123456"],
+	])("rejects a wrongly typed value for the role %p", (role, wrong) => {
+		const tokens = { ...tokensForContract(), [role]: wrong }
+		expectThemeError(
+			() => defineTheme({ name: "custom", tokens }),
+			ThemeErrorCode.WRONG_TOKEN_TYPE,
+			`tokens.${role}`,
+		)
+	})
+
 	it.each(["#123456;", "#123456; }", "#123456 }", "url(https://example.com/x.png)"])(
 		"rejects the unsafe value %p before checking its Token Type",
 		(unsafe) => {

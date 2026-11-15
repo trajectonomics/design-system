@@ -20,9 +20,10 @@ function selectors(css: string): readonly string[] {
 		.filter((selector) => selector.length > 0)
 }
 
-/** The Tailwind utility colour names a stylesheet maps, sorted. */
-function tailwindColorNames(css: string): readonly string[] {
-	return [...css.matchAll(/--color-([\w-]+):/g)].map((match) => match[1] ?? "").sort()
+/** Every custom property a stylesheet declares, sorted, so a new namespace cannot slip in. */
+function declaredVariables(css: string): readonly string[] {
+	const names = [...css.matchAll(/--[\w-]+(?=\s*:)/g)].map((match) => match[0])
+	return [...new Set(names)].sort()
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -60,6 +61,31 @@ describe("Web Consumer Contract", () => {
 			"--ds-color-ring",
 			"--ds-color-secondary",
 			"--ds-color-secondary-foreground",
+			"--ds-font-family-mono",
+			"--ds-font-family-sans",
+			"--ds-font-size-2xl",
+			"--ds-font-size-3xl",
+			"--ds-font-size-base",
+			"--ds-font-size-lg",
+			"--ds-font-size-sm",
+			"--ds-font-size-xl",
+			"--ds-font-size-xs",
+			"--ds-radius-lg",
+			"--ds-radius-md",
+			"--ds-radius-sm",
+			"--ds-radius-xl",
+			"--ds-space-1",
+			"--ds-space-10",
+			"--ds-space-12",
+			"--ds-space-16",
+			"--ds-space-2",
+			"--ds-space-3",
+			"--ds-space-4",
+			"--ds-space-5",
+			"--ds-space-6",
+			"--ds-space-7",
+			"--ds-space-8",
+			"--ds-space-9",
 		])
 	})
 
@@ -70,28 +96,53 @@ describe("Web Consumer Contract", () => {
 		}
 	})
 
-	it("pins the Tailwind colour names", async () => {
+	it("pins the Tailwind theme variable names across every role namespace", async () => {
 		const css = await readFile(TAILWIND_CSS_PATH, "utf8")
-		expect(tailwindColorNames(css)).toEqual([
-			"accent",
-			"accent-foreground",
-			"background",
-			"border",
-			"card",
-			"card-foreground",
-			"destructive",
-			"destructive-foreground",
-			"foreground",
-			"input",
-			"muted",
-			"muted-foreground",
-			"popover",
-			"popover-foreground",
-			"primary",
-			"primary-foreground",
-			"ring",
-			"secondary",
-			"secondary-foreground",
+		expect(declaredVariables(css)).toEqual([
+			"--color-accent",
+			"--color-accent-foreground",
+			"--color-background",
+			"--color-border",
+			"--color-card",
+			"--color-card-foreground",
+			"--color-destructive",
+			"--color-destructive-foreground",
+			"--color-foreground",
+			"--color-input",
+			"--color-muted",
+			"--color-muted-foreground",
+			"--color-popover",
+			"--color-popover-foreground",
+			"--color-primary",
+			"--color-primary-foreground",
+			"--color-ring",
+			"--color-secondary",
+			"--color-secondary-foreground",
+			"--font-mono",
+			"--font-sans",
+			"--radius-lg",
+			"--radius-md",
+			"--radius-sm",
+			"--radius-xl",
+			"--spacing-1",
+			"--spacing-10",
+			"--spacing-12",
+			"--spacing-16",
+			"--spacing-2",
+			"--spacing-3",
+			"--spacing-4",
+			"--spacing-5",
+			"--spacing-6",
+			"--spacing-7",
+			"--spacing-8",
+			"--spacing-9",
+			"--text-2xl",
+			"--text-3xl",
+			"--text-base",
+			"--text-lg",
+			"--text-sm",
+			"--text-xl",
+			"--text-xs",
 		])
 	})
 
