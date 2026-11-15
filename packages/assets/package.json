@@ -1,7 +1,7 @@
 {
 	"name": "@trajectonomics/design-system-assets",
 	"version": "0.0.0-development",
-	"description": "Trajectonomics design system: Brand Assets (logo mark, wordmark and Favicon Set)",
+	"description": "Trajectonomics design system: Brand Assets (logo mark, wordmark and Favicon Set) and the Brand Typeface (Inter woff2 and its @font-face stylesheet)",
 	"license": "SEE LICENSE IN NOTICE",
 	"repository": {
 		"type": "git",
@@ -9,7 +9,9 @@
 		"directory": "packages/assets"
 	},
 	"type": "module",
-	"sideEffects": false,
+	"sideEffects": [
+		"**/*.css"
+	],
 	"engines": {
 		"node": ">=20.0.0"
 	},
@@ -25,6 +27,9 @@
 		"./favicon/apple-touch-icon.png": "./dist/favicon/apple-touch-icon.png",
 		"./favicon/icon-192.png": "./dist/favicon/icon-192.png",
 		"./favicon/icon-512.png": "./dist/favicon/icon-512.png",
+		"./fonts/inter.css": "./dist/fonts/inter.css",
+		"./fonts/inter-latin-wght.woff2": "./dist/fonts/inter-latin-wght.woff2",
+		"./fonts/inter-latin-ext-wght.woff2": "./dist/fonts/inter-latin-ext-wght.woff2",
 		"./package.json": "./package.json"
 	},
 	"files": [
@@ -42,7 +47,7 @@
 		"test": "bun test",
 		"typecheck": "tsc -p tsconfig.json",
 		"lint": "biome ci --error-on-warnings .",
-		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./logo/mark.svg ./logo/wordmark.svg ./logo/mark-on-light.svg ./logo/mark-on-dark.svg ./logo/wordmark-on-light.svg ./logo/wordmark-on-dark.svg ./favicon/favicon.svg ./favicon/favicon.ico ./favicon/apple-touch-icon.png ./favicon/icon-192.png ./favicon/icon-512.png"
+		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./logo/mark.svg ./logo/wordmark.svg ./logo/mark-on-light.svg ./logo/mark-on-dark.svg ./logo/wordmark-on-light.svg ./logo/wordmark-on-dark.svg ./favicon/favicon.svg ./favicon/favicon.ico ./favicon/apple-touch-icon.png ./favicon/icon-192.png ./favicon/icon-512.png ./fonts/inter.css ./fonts/inter-latin-wght.woff2 ./fonts/inter-latin-ext-wght.woff2"
 	},
 	"devDependencies": {
 		"@resvg/resvg-wasm": "^2.6.2",

@@ -18,7 +18,7 @@ This repository is a private Bun workspace with four published packages and one 
 | [`@trajectonomics/design-system`](./packages/core) | `packages/core` | Pure data: Primitive Tokens, Semantic Tokens, the Semantic Token Contract and the built-in `light` and `dark` Themes. No dependencies. |
 | [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind Theme Stylesheet. |
 | [`@trajectonomics/design-system-svelte`](./packages/svelte) | `packages/svelte` | Svelte 5 components and Hooks, with one compiled stylesheet. Consumers do not need Tailwind. |
-| [`@trajectonomics/design-system-assets`](./packages/assets) | `packages/assets` | Brand Assets: the logo mark, the wordmark and the Favicon Set, as static files. No dependencies. |
+| [`@trajectonomics/design-system-assets`](./packages/assets) | `packages/assets` | Brand Assets (logo mark, wordmark, Favicon Set) and the Brand Typeface (Inter woff2 and its `@font-face` stylesheet), as static files. No dependencies. |
 | Storybook (private) | [`apps/storybook`](./apps/storybook) | Component previews with a Theme switcher and the accessibility addon. Never published. |
 
 Dependency direction is `svelte` → `theme` → `core`. `theme` and `svelte` declare their dependencies
@@ -34,7 +34,7 @@ bun add @trajectonomics/design-system @trajectonomics/design-system-theme
 # Svelte components and Hooks
 bun add @trajectonomics/design-system-svelte @trajectonomics/design-system-theme @trajectonomics/design-system
 
-# Brand Assets (logo mark, wordmark, Favicon Set)
+# Brand Assets (logo mark, wordmark, Favicon Set) and the Brand Typeface (Inter)
 bun add @trajectonomics/design-system-assets
 ```
 
@@ -91,17 +91,19 @@ const css = themeToCss(theme) // [data-theme="brand-ocean"] { --ds-color-primary
 ## Web apps without Svelte
 
 `core` and `theme` have no Svelte dependency, so a plain web app (Vite, Astro, React, Fumadocs) uses
-the same CSS. Install the two packages:
+the same CSS. Install the two packages, plus `assets` if the page opts into the Brand Typeface:
 
 ```bash
 bun add @trajectonomics/design-system @trajectonomics/design-system-theme
+bun add @trajectonomics/design-system-assets # only for the Brand Typeface stylesheet below
 ```
 
 ### The stylesheets to import
 
-With Tailwind v4, import Tailwind first, then the Themes you offer, the Tailwind Theme Stylesheet
-and the System Typography Stylesheet. This is the whole setup, and the framework-free fixture in
-`fixtures/web` builds from exactly these lines:
+With Tailwind v4, import Tailwind first, then the Themes you offer, the Tailwind Theme Stylesheet,
+the System Typography Stylesheet and — to render the Brand Typeface — its stylesheet
+from the assets package. This is the whole setup, and the framework-free fixture in `fixtures/web`
+builds from exactly these lines:
 
 ```css
 @import "tailwindcss";
@@ -109,6 +111,7 @@ and the System Typography Stylesheet. This is the whole setup, and the framework
 @import "@trajectonomics/design-system-theme/themes/dark.css";
 @import "@trajectonomics/design-system-theme/tailwind.css";
 @import "@trajectonomics/design-system-theme/typography.css";
+@import "@trajectonomics/design-system-assets/fonts/inter.css";
 ```
 
 `tailwind.css` is a Tailwind v4 `@theme inline` stylesheet, so utilities such as `bg-primary`,
@@ -123,6 +126,15 @@ phrase inside an English page still fits. It loads no font file and declares no 
 a page with a no-web-font budget can still import it. Because it selects `[data-theme]`, it wins over
 Tailwind's preflight on `font-family` and `line-height` whatever the import order, as long as the
 Theme attribute sits on `<html>`.
+
+`inter.css` is the Brand Typeface stylesheet from the assets package. It declares only `@font-face`
+rules for `"Inter Variable"` — one per subset (latin and latin-ext), with `font-display: swap`,
+`font-weight: 100 900` and a per-subset `unicode-range` — so it sets no property on any element. You
+assign your own `--font-*` variable, for example
+`--font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif`, and apply it where you want
+the Brand Typeface; keep the Thai-capable system stack behind it so Thai glyphs still fall through.
+A page with a no-web-font budget simply does not import `inter.css`: `typography.css` stays the
+zero-payload default.
 
 Without Tailwind, import the Theme CSS only and use the custom properties directly. They are `--ds-`
 plus the Semantic Token Role name with dots replaced by dashes, so `color.primary.foreground` is
@@ -204,7 +216,9 @@ first and updated `theme` and `svelte` peer ranges.
 
 `@trajectonomics/design-system-assets` ships the art a site needs as static files with no
 dependencies: the logo mark, the wordmark and the Favicon Set. The art comes from the owner, and the
-package adds no Design Tokens.
+package adds no Design Tokens. The same package also ships the Brand Typeface as opt-in exports —
+`./fonts/inter.css` plus the Inter woff2 files — for a site that wants the Brand Typeface; see
+"Web apps without Svelte" above.
 
 ```bash
 bun add @trajectonomics/design-system-assets
@@ -240,7 +254,9 @@ cp node_modules/@trajectonomics/design-system-assets/dist/favicon/* public/
 
 Brand Assets are not MIT: they carry the owner's [NOTICE](./packages/assets/NOTICE) (all rights
 reserved), unlike the code packages, and they release on their own (`release-assets.yml`) so a logo
-change never republishes `theme`.
+change never republishes `theme`. The Brand Typeface files (`dist/fonts/*`) are the exception: they
+are Inter, licensed under the SIL Open Font License 1.1
+([INTER-OFL-1.1.txt](./packages/assets/INTER-OFL-1.1.txt)).
 
 ## Svelte components and Hooks
 

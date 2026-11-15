@@ -13,7 +13,8 @@ LICENSE file at the root of the repository.
 
 Typeface: the wordmark is the word "Trajectonomics" set in Inter SemiBold
 (Copyright 2020 The Inter Project Authors, https://github.com/rsms/inter) and
-converted to outlined paths. Inter is licensed under the SIL Open Font
-License 1.1 (see INTER-OFL-1.1.txt). The font itself is not included in this
-package; the licence for the font does not extend to the Trajectonomics
+converted to outlined paths. The Brand Typeface files in this package,
+dist/fonts/*.woff2 and dist/fonts/inter.css, are Inter and are licensed under
+the SIL Open Font License 1.1 (see INTER-OFL-1.1.txt, shipped in this
+package). The licence for the font does not extend to the Trajectonomics
 artwork, and the artwork does not change the licence of the font.

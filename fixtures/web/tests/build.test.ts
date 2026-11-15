@@ -73,7 +73,7 @@ describe("framework-free consumer build", () => {
 })
 
 describe("System Typography Stylesheet import", () => {
-	it("gives themed text a system stack with Thai coverage, and loads no font file", async () => {
+	it("gives themed text a system stack with Thai coverage", async () => {
 		const css = await builtCss()
 		const themed = /\[data-theme\]\{([^}]*)\}/.exec(css)?.[1] ?? ""
 		const thai =
@@ -85,7 +85,42 @@ describe("System Typography Stylesheet import", () => {
 		expect(themed).toContain("line-height:1.7")
 		expect(themed).toContain("word-break:normal")
 		expect(thai).toBe("line-height:1.8")
-		expect(css).not.toContain("@font-face")
+	})
+})
+
+describe("Brand Typeface import", () => {
+	it("declares the Inter Variable @font-face rules with swap display", async () => {
+		const css = await builtCss()
+		const faces = css.match(/@font-face\s*\{[^}]*\}/g) ?? []
+
+		expect(faces.length).toBeGreaterThanOrEqual(2)
+		for (const face of faces) {
+			expect(face).toMatch(/font-family:\s*"?Inter Variable"?/)
+			expect(face).toMatch(/font-display:\s*swap/)
+			expect(face).toMatch(/font-weight:\s*100 900/)
+			expect(face).toMatch(/unicode-range:\s*U\+/)
+		}
+	})
+
+	it("emits each woff2 subset and references its hashed filename from the built CSS", async () => {
+		const files = await builtFiles()
+		const css = await builtCss()
+		const woff2 = files.filter((name) => /^inter-latin(-ext)?-wght-.*\.woff2$/.test(name))
+
+		expect(woff2).toHaveLength(2)
+		for (const name of woff2) {
+			expect(css).toContain(name)
+		}
+	})
+
+	it("applies the consumer-owned --font-sans seam with Inter Variable first", async () => {
+		const css = await builtCss()
+		const seams = [...css.matchAll(/--font-sans:\s*([^;}]+)/g)].map((match) => match[1] ?? "")
+		const brandSeam = seams.find((value) => /^"?Inter Variable"?/.test(value))
+
+		expect(brandSeam).toBeDefined()
+		expect(brandSeam).toContain("Noto Sans Thai")
+		expect(css).toMatch(/font-family:\s*var\(--font-sans\)/)
 	})
 })
 
