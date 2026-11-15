@@ -101,7 +101,7 @@ bun add @trajectonomics/design-system-assets # only for the Brand Typeface style
 ### The stylesheets to import
 
 With Tailwind v4, import Tailwind first, then the Themes you offer, the Tailwind Theme Stylesheet,
-the System Typography Stylesheet and — to render the brand typeface — the Brand Typeface stylesheet
+the System Typography Stylesheet and — to render the Brand Typeface — its stylesheet
 from the assets package. This is the whole setup, and the framework-free fixture in `fixtures/web`
 builds from exactly these lines:
 
@@ -132,7 +132,7 @@ rules for `"Inter Variable"` — one per subset (latin and latin-ext), with `fon
 `font-weight: 100 900` and a per-subset `unicode-range` — so it sets no property on any element. You
 assign your own `--font-*` variable, for example
 `--font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif`, and apply it where you want
-the brand typeface; keep the Thai-capable system stack behind it so Thai glyphs still fall through.
+the Brand Typeface; keep the Thai-capable system stack behind it so Thai glyphs still fall through.
 A page with a no-web-font budget simply does not import `inter.css`: `typography.css` stays the
 zero-payload default.
 
@@ -217,7 +217,7 @@ first and updated `theme` and `svelte` peer ranges.
 `@trajectonomics/design-system-assets` ships the art a site needs as static files with no
 dependencies: the logo mark, the wordmark and the Favicon Set. The art comes from the owner, and the
 package adds no Design Tokens. The same package also ships the Brand Typeface as opt-in exports —
-`./fonts/inter.css` plus the Inter woff2 files — for a site that wants the brand font; see
+`./fonts/inter.css` plus the Inter woff2 files — for a site that wants the Brand Typeface; see
 "Web apps without Svelte" above.
 
 ```bash

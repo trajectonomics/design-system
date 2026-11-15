@@ -75,7 +75,7 @@ scheme with no script. The ICO and the PNGs cannot adapt: they are the light-mod
 black mark on a transparent background. iOS composites a transparent Apple touch icon on black, so
 draw the mark on your own background if it must read on a dark home screen.
 
-## Using the brand typeface
+## Using the Brand Typeface
 
 Import the stylesheet once and assign your own `--font-*` variable; the stylesheet declares only
 `@font-face` rules, so it sets no property on any element by itself:
