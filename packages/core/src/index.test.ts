@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { primitiveTokens, semanticTokenContract, themes } from "./index"
+import { createPrimitiveToken, primitiveTokens, semanticTokenContract, themes } from "./index"
 
 describe("built-in Primitive Tokens", () => {
 	it("are frozen literal tokens that never reference another token", () => {
@@ -8,9 +8,14 @@ describe("built-in Primitive Tokens", () => {
 		expect(tokens.length).toBeGreaterThan(0)
 		for (const token of tokens) {
 			expect(Object.isFrozen(token)).toBe(true)
-			expect(token.value.startsWith("#")).toBe(true)
+			expect(createPrimitiveToken(token).value).toBe(token.value)
 			expect(names.has(token.value)).toBe(false)
 		}
+	})
+
+	it("hold one distinct value each", () => {
+		const tokens = Object.values(primitiveTokens)
+		expect(new Set(tokens.map((token) => token.value)).size).toBe(tokens.length)
 	})
 
 	it("are frozen as one palette", () => {
@@ -26,10 +31,21 @@ describe("built-in Themes", () => {
 		}
 	})
 
-	it("resolves every role to a literal colour", () => {
+	it("resolves every role to a literal its role's Token Type accepts", () => {
 		for (const theme of themes) {
-			for (const value of Object.values(theme.tokens)) {
-				expect(value).toMatch(/^#[0-9a-f]{6}$/i)
+			for (const role of semanticTokenContract.roles) {
+				const value = theme.tokens[role.name]!
+				expect(createPrimitiveToken({ name: role.name, type: role.type, value }).value).toBe(value)
+			}
+		}
+	})
+
+	it("resolves the length and font family roles to the same values in every Theme", () => {
+		const nonColorRoles = semanticTokenContract.roles.filter((role) => role.type !== "color")
+		const [first, ...rest] = themes
+		for (const theme of rest) {
+			for (const role of nonColorRoles) {
+				expect(theme.tokens[role.name]).toBe(first!.tokens[role.name])
 			}
 		}
 	})

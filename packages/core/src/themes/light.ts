@@ -1,11 +1,13 @@
 import { primitiveTokens } from "../primitives"
 import { defineBuiltInTheme, type RolePrimitives, type Theme } from "../theme"
+import { nonColorRolePrimitives } from "./non-color-roles"
 
 const { white, neutral50, neutral100, neutral200, neutral400, neutral500, neutral900, neutral950 } =
 	primitiveTokens
 const { red600, orange700 } = primitiveTokens
 
 const rolePrimitives: RolePrimitives = {
+	...nonColorRolePrimitives,
 	"color.background": white,
 	"color.foreground": neutral950,
 	"color.card": white,

@@ -21,6 +21,31 @@ export type SemanticTokenName =
 	| "color.border"
 	| "color.input"
 	| "color.ring"
+	| "radius.sm"
+	| "radius.md"
+	| "radius.lg"
+	| "radius.xl"
+	| "space.1"
+	| "space.2"
+	| "space.3"
+	| "space.4"
+	| "space.5"
+	| "space.6"
+	| "space.7"
+	| "space.8"
+	| "space.9"
+	| "space.10"
+	| "space.12"
+	| "space.16"
+	| "font.family.sans"
+	| "font.family.mono"
+	| "font.size.xs"
+	| "font.size.sm"
+	| "font.size.base"
+	| "font.size.lg"
+	| "font.size.xl"
+	| "font.size.2xl"
+	| "font.size.3xl"
 
 /** A role in the Semantic Token Contract: a Semantic Token name and the Token Type it accepts. */
 export interface SemanticTokenRole {
@@ -54,6 +79,31 @@ const ROLE_TYPES: Readonly<Record<SemanticTokenName, TokenType>> = {
 	"color.border": "color",
 	"color.input": "color",
 	"color.ring": "color",
+	"radius.sm": "length",
+	"radius.md": "length",
+	"radius.lg": "length",
+	"radius.xl": "length",
+	"space.1": "length",
+	"space.2": "length",
+	"space.3": "length",
+	"space.4": "length",
+	"space.5": "length",
+	"space.6": "length",
+	"space.7": "length",
+	"space.8": "length",
+	"space.9": "length",
+	"space.10": "length",
+	"space.12": "length",
+	"space.16": "length",
+	"font.family.sans": "fontFamily",
+	"font.family.mono": "fontFamily",
+	"font.size.xs": "length",
+	"font.size.sm": "length",
+	"font.size.base": "length",
+	"font.size.lg": "length",
+	"font.size.xl": "length",
+	"font.size.2xl": "length",
+	"font.size.3xl": "length",
 }
 
 /** The Contract role names, in Contract order. */
@@ -63,7 +113,7 @@ export const CONTRACT_ROLE_NAMES: readonly SemanticTokenName[] = Object.freeze(
 
 /** The versioned, closed Semantic Token Contract that every Theme resolves. */
 export const semanticTokenContract: SemanticTokenContract = Object.freeze({
-	version: 1,
+	version: 2,
 	roles: Object.freeze(
 		CONTRACT_ROLE_NAMES.map((name) => Object.freeze({ name, type: ROLE_TYPES[name] })),
 	),

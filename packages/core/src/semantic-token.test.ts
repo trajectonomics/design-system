@@ -48,6 +48,23 @@ describe("Semantic Tokens", () => {
 		)
 	})
 
+	it("rejects a colour Primitive Token for a length role", () => {
+		expectDomainError(
+			() => createSemanticToken({ name: "radius.sm", primitive: neutral900 }),
+			DomainErrorCode.ROLE_TYPE_MISMATCH,
+			"primitive",
+		)
+	})
+
+	it("rejects a length Primitive Token for a font family role", () => {
+		const length = createPrimitiveToken({ name: "length.1rem", type: "length", value: "1rem" })
+		expectDomainError(
+			() => createSemanticToken({ name: "font.family.sans", primitive: length }),
+			DomainErrorCode.ROLE_TYPE_MISMATCH,
+			"primitive",
+		)
+	})
+
 	it("rejects a Semantic Token with a blank name", () => {
 		expectDomainError(
 			() => createSemanticToken({ name: "  " as SemanticTokenName, primitive: neutral900 }),
