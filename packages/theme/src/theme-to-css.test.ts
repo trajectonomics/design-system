@@ -25,6 +25,31 @@ const CUSTOM_CSS = `[data-theme="brand-ocean"] {
   --ds-color-border: #123456;
   --ds-color-input: #123456;
   --ds-color-ring: #123456;
+  --ds-radius-sm: 1rem;
+  --ds-radius-md: 1rem;
+  --ds-radius-lg: 1rem;
+  --ds-radius-xl: 1rem;
+  --ds-space-1: 1rem;
+  --ds-space-2: 1rem;
+  --ds-space-3: 1rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1rem;
+  --ds-space-6: 1rem;
+  --ds-space-7: 1rem;
+  --ds-space-8: 1rem;
+  --ds-space-9: 1rem;
+  --ds-space-10: 1rem;
+  --ds-space-12: 1rem;
+  --ds-space-16: 1rem;
+  --ds-font-family-sans: Inter, sans-serif;
+  --ds-font-family-mono: Inter, sans-serif;
+  --ds-font-size-xs: 1rem;
+  --ds-font-size-sm: 1rem;
+  --ds-font-size-base: 1rem;
+  --ds-font-size-lg: 1rem;
+  --ds-font-size-xl: 1rem;
+  --ds-font-size-2xl: 1rem;
+  --ds-font-size-3xl: 1rem;
 }
 `
 
@@ -85,6 +110,21 @@ describe("Theme CSS", () => {
 			expect(css).toContain(`--ds-color-primary: ${value};`)
 		},
 	)
+
+	it("emits a length role and a font family role under their --ds- names", () => {
+		const tokens = {
+			...tokensForContract(),
+			"radius.xl": "0.75rem",
+			"space.4": "1rem",
+			"font.family.sans": "ui-sans-serif, sans-serif",
+			"font.size.base": "1.125rem",
+		}
+		const css = themeToCss(defineTheme({ name: CUSTOM_NAME, tokens }))
+		expect(css).toContain("--ds-radius-xl: 0.75rem;")
+		expect(css).toContain("--ds-space-4: 1rem;")
+		expect(css).toContain("--ds-font-family-sans: ui-sans-serif, sans-serif;")
+		expect(css).toContain("--ds-font-size-base: 1.125rem;")
+	})
 
 	it("never substitutes a built-in Theme's values for a Theme reusing its name", () => {
 		const css = themeToCss(customTheme("light"))

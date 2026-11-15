@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { darkTheme, lightTheme, semanticTokenContract } from "@trajectonomics/design-system"
 import { themeToCss } from "../src/index"
-import { buildTailwindThemeCss, tailwindColorName } from "./tailwind-theme-css"
+import { buildTailwindThemeCss, tailwindThemeVariable } from "./tailwind-theme-css"
 
 const PACKAGE_ROOT = join(import.meta.dir, "..")
 const SHIPPED_CSS_PATH = join(PACKAGE_ROOT, "tailwind.css")
@@ -16,7 +16,8 @@ async function readShippedCss(): Promise<string> {
 function contractMappings(): Map<string, string> {
 	const mappings = new Map<string, string>()
 	for (const role of semanticTokenContract.roles) {
-		mappings.set(tailwindColorName(role.name), `--ds-${role.name.replaceAll(".", "-")}`)
+		const variable = `--ds-${role.name.replaceAll(".", "-")}`
+		mappings.set(tailwindThemeVariable(role.name), variable)
 	}
 	return mappings
 }
@@ -60,6 +61,7 @@ async function compileFixture(stylesheet: string): Promise<string> {
 			[
 				'<div class="bg-primary text-primary-foreground border-border ring-ring"></div>',
 				'<div class="focus:ring-ring bg-background text-foreground"></div>',
+				'<div class="rounded-xl p-4 text-base font-sans"></div>',
 			].join("\n"),
 		)
 		const process = Bun.spawn({
@@ -87,16 +89,32 @@ async function compileFixture(stylesheet: string): Promise<string> {
 }
 
 describe("Tailwind theme stylesheet", () => {
-	it("maps every Contract role to a Tailwind colour that reads its --ds- variable", async () => {
+	it("maps every Contract role to a Tailwind theme variable that reads its --ds- variable", async () => {
 		const css = await readShippedCss()
 		const mappings = new Map<string, string>()
-		for (const match of css.matchAll(/--color-([\w-]+):\s*var\((--ds-[\w-]+)\);/g)) {
+		for (const match of css.matchAll(
+			/(--(?:color|radius|spacing|font|text)-[\w-]+):\s*var\((--ds-[\w-]+)\);/g,
+		)) {
 			const name = match[1]
 			const variable = match[2]
 			if (name === undefined || variable === undefined) throw new Error("Malformed mapping")
 			mappings.set(name, variable)
 		}
 		expect(mappings).toEqual(contractMappings())
+	})
+
+	it.each([
+		["color.card.foreground", "--color-card-foreground"],
+		["radius.xl", "--radius-xl"],
+		["space.16", "--spacing-16"],
+		["font.family.sans", "--font-sans"],
+		["font.size.2xl", "--text-2xl"],
+	] as const)("maps the role %p to the Tailwind variable %p", (role, expected) => {
+		expect(tailwindThemeVariable(role)).toBe(expected)
+	})
+
+	it("fails the generator on a role outside the closed namespace map", () => {
+		expect(() => tailwindThemeVariable("shadow.card")).toThrow()
 	})
 
 	it("is the stylesheet generated from the Contract, with no drift", async () => {
@@ -113,6 +131,14 @@ describe("Tailwind theme stylesheet", () => {
 		expect(output).toContain("border-color: var(--ds-color-border);")
 		expect(output).toContain(".ring-ring {")
 		expect(output).toContain("--tw-ring-color: var(--ds-color-ring);")
+		expect(output).toContain(".rounded-xl {")
+		expect(output).toContain("border-radius: var(--ds-radius-xl);")
+		expect(output).toContain(".p-4 {")
+		expect(output).toContain("padding: var(--ds-space-4);")
+		expect(output).toContain(".text-base {")
+		expect(output).toContain("font-size: var(--ds-font-size-base);")
+		expect(output).toContain(".font-sans {")
+		expect(output).toContain("font-family: var(--ds-font-family-sans);")
 	})
 
 	it("restyles a compiled Tailwind utility when data-theme switches, with no rebuild", async () => {

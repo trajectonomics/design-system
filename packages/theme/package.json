@@ -55,7 +55,7 @@
 		"lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./themes/light.css ./themes/dark.css ./tailwind.css ./typography.css"
 	},
 	"peerDependencies": {
-		"@trajectonomics/design-system": "^0.1.0-alpha.0"
+		"@trajectonomics/design-system": "^0.1.0-alpha.3"
 	},
 	"devDependencies": {
 		"@tailwindcss/cli": "^4.3.5",
