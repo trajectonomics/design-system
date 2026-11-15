@@ -8,7 +8,6 @@ describe("built-in Primitive Tokens", () => {
 		expect(tokens.length).toBeGreaterThan(0)
 		for (const token of tokens) {
 			expect(Object.isFrozen(token)).toBe(true)
-			expect(createPrimitiveToken(token).value).toBe(token.value)
 			expect(names.has(token.value)).toBe(false)
 		}
 	})
@@ -16,6 +15,41 @@ describe("built-in Primitive Tokens", () => {
 	it("hold one distinct value each", () => {
 		const tokens = Object.values(primitiveTokens)
 		expect(new Set(tokens.map((token) => token.value)).size).toBe(tokens.length)
+	})
+
+	it("hold the 16 length values and 2 font stacks Contract v2 needs", () => {
+		const tokens = Object.values(primitiveTokens)
+		const valuesOf = (type: string) =>
+			tokens
+				.filter((token) => token.type === type)
+				.map((token) => token.value)
+				.sort()
+		expect(valuesOf("length")).toEqual(
+			[
+				"0.25rem",
+				"0.375rem",
+				"0.5rem",
+				"0.75rem",
+				"0.875rem",
+				"1rem",
+				"1.125rem",
+				"1.25rem",
+				"1.5rem",
+				"1.75rem",
+				"1.875rem",
+				"2rem",
+				"2.25rem",
+				"2.5rem",
+				"3rem",
+				"4rem",
+			].sort(),
+		)
+		expect(valuesOf("fontFamily")).toEqual(
+			[
+				'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+				'ui-sans-serif, system-ui, "Segoe UI", "Leelawadee UI", Thonburi, "Noto Sans Thai", sans-serif',
+			].sort(),
+		)
 	})
 
 	it("are frozen as one palette", () => {

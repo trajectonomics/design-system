@@ -1,9 +1,6 @@
 import { createPrimitiveToken, type PrimitiveToken } from "./primitive-token"
 
-/**
- * The built-in Primitive Tokens: the raw palette every built-in Theme draws from.
- * Length names encode their value without dots or dashes (`length0_25rem` is `0.25rem`).
- */
+/** The built-in Primitive Tokens: the raw palette every built-in Theme draws from. */
 export interface PrimitiveTokenPalette {
 	readonly white: PrimitiveToken
 	readonly neutral50: PrimitiveToken
@@ -18,6 +15,7 @@ export interface PrimitiveTokenPalette {
 	readonly red600: PrimitiveToken
 	readonly orange600: PrimitiveToken
 	readonly orange700: PrimitiveToken
+	// Length keys encode their value without dots or dashes (`length0_25rem` is `0.25rem`).
 	readonly length0_25rem: PrimitiveToken
 	readonly length0_375rem: PrimitiveToken
 	readonly length0_5rem: PrimitiveToken

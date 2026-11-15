@@ -20,11 +20,9 @@ function selectors(css: string): readonly string[] {
 		.filter((selector) => selector.length > 0)
 }
 
-/** The Tailwind v4 theme variables a stylesheet maps, across every role namespace, sorted. */
-function tailwindThemeVariables(css: string): readonly string[] {
-	const names = [...css.matchAll(/--(?:color|radius|spacing|font|text)-[\w-]+(?=\s*:)/g)].map(
-		(match) => match[0],
-	)
+/** Every custom property a stylesheet declares, sorted, so a new namespace cannot slip in. */
+function declaredVariables(css: string): readonly string[] {
+	const names = [...css.matchAll(/--[\w-]+(?=\s*:)/g)].map((match) => match[0])
 	return [...new Set(names)].sort()
 }
 
@@ -100,7 +98,7 @@ describe("Web Consumer Contract", () => {
 
 	it("pins the Tailwind theme variable names across every role namespace", async () => {
 		const css = await readFile(TAILWIND_CSS_PATH, "utf8")
-		expect(tailwindThemeVariables(css)).toEqual([
+		expect(declaredVariables(css)).toEqual([
 			"--color-accent",
 			"--color-accent-foreground",
 			"--color-background",
