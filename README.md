@@ -295,7 +295,7 @@ packages/
 ├── core/       # tokens, Contract and built-in Themes (pure data)
 ├── theme/      # defineTheme, validation, Theme CSS, Tailwind stylesheet (pure behaviour)
 ├── svelte/     # Svelte 5 components and Hooks, compiled CSS
-└── assets/     # Brand Assets: logo mark, wordmark, Favicon Set (static files)
+└── assets/     # Brand Assets and the Brand Typeface (static files)
 apps/
 └── storybook/  # private Storybook preview
 fixtures/
@@ -330,8 +330,10 @@ bun run smoke
 The consumer smoke test packs `core`, `theme`, `svelte` and `assets`, installs the tarballs into both
 fixture apps, then runs each app's own checks. The Svelte app runs `svelte-check`, a Theme-switch test
 and a production build; the framework-free app builds with Tailwind v4 and asserts the compiled CSS:
-the `--ds-` variables of both Themes, the resolved `bg-primary` utility and the `dark:` variant, plus
-a Brand Asset import that resolves to an emitted file. It also fails if Svelte is installed, so the
+the `--ds-` variables of both Themes, the resolved `bg-primary` utility and the `dark:` variant, the
+System Typography Stylesheet's Thai-capable stack, the Brand Typeface `@font-face` rules and the
+emitted woff2 files they reference with the consumer's `--font-sans` seam, plus a Brand Asset import
+that resolves to an emitted file. It also fails if Svelte is installed, so the
 non-Svelte consumer stays provable. CI runs the smoke as its own job.
 
 TypeScript and test runners are split by package: `core`, `theme` and `assets` use TypeScript 7 and
