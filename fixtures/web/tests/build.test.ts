@@ -124,6 +124,12 @@ describe("Brand Typeface import", () => {
 	})
 })
 
+/** The Brand Assets the fixture imports, by emitted-filename prefix, and the markers each carries. */
+const importedBrandAssets = [
+	{ prefix: "mark-on-light-", markers: ['viewBox="0 0 1024 1024"', 'fill="#000"'] },
+	{ prefix: "mark-tile-", markers: ['viewBox="0 0 1024 1024"', "prefers-color-scheme"] },
+] as const
+
 describe("Brand Asset import", () => {
 	it("resolves both Brand Asset subpaths the fixture imports to files the build emits", async () => {
 		const files = await builtFiles()
@@ -131,20 +137,19 @@ describe("Brand Asset import", () => {
 		if (script === undefined) throw new Error(`No emitted script in ${DIST_ASSETS}`)
 		const code = await readFile(join(DIST_ASSETS, script), "utf8")
 
-		const fixed = files.find((name) => name.startsWith("mark-on-light-") && name.endsWith(".svg"))
-		if (fixed === undefined) throw new Error(`No emitted fixed-colour mark in ${DIST_ASSETS}`)
-		const fixedContents = await readFile(join(DIST_ASSETS, fixed), "utf8")
+		for (const { prefix, markers } of importedBrandAssets) {
+			const file = files.find((name) => name.startsWith(prefix) && name.endsWith(".svg"))
+			if (file === undefined) throw new Error(`No emitted ${prefix} Brand Asset in ${DIST_ASSETS}`)
+			const contents = await readFile(join(DIST_ASSETS, file), "utf8")
 
-		expect(fixedContents).toContain('viewBox="0 0 1024 1024"')
-		expect(fixedContents).toContain('fill="#000"')
-		expect(code).toContain(fixed)
-
-		const tile = files.find((name) => name.startsWith("mark-tile-") && name.endsWith(".svg"))
-		if (tile === undefined) throw new Error(`No emitted tiled mark in ${DIST_ASSETS}`)
-		const tileContents = await readFile(join(DIST_ASSETS, tile), "utf8")
-
-		expect(tileContents).toContain('viewBox="0 0 1024 1024"')
-		expect(tileContents).toContain("prefers-color-scheme")
-		expect(code).toContain(tile)
+			for (const marker of markers) {
+				expect({ file, marker, present: contents.includes(marker) }).toEqual({
+					file,
+					marker,
+					present: true,
+				})
+			}
+			expect({ file, referenced: code.includes(file) }).toEqual({ file, referenced: true })
+		}
 	})
 })

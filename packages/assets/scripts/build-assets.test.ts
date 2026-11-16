@@ -101,7 +101,7 @@ describe("Brand Asset build", () => {
 		expect(readIcoSizes(bytes)).toEqual([...faviconIco.sizesPx])
 	})
 
-	it("keeps the smallest tab icon a tile whose mark reaches the centre, with transparent fillets", async () => {
+	it("keeps the smallest favicon a tile whose mark reaches the centre, with transparent fillets", async () => {
 		const sizePx = Math.min(...faviconIco.sizesPx)
 		const svg = new TextDecoder().decode(await builtExport(faviconSvgExportPath))
 		const pixels = await rasteriseSvgToRgba(svg, sizePx)
@@ -119,17 +119,15 @@ describe("Brand Asset build", () => {
 			pixelAt(pixels, sizePx, 0, sizePx - 1),
 			pixelAt(pixels, sizePx, sizePx - 1, sizePx - 1),
 		]
-		const centreReds = centre.map((pixel) => pixel[0] ?? 0)
 
-		expect({ tile: isColour(edge, LIGHT_TILE_RGB), opacity: edge[3] }).toEqual({
-			tile: true,
-			opacity: 255,
-		})
+		// The middle of the top edge is inside the tile, so it is the tile colour at full opacity.
+		expect({ edge }).toEqual({ edge: [...LIGHT_TILE_RGB, 255] })
 		// The mark's stem is copied from the owner's art unchanged, so it sits just left
-		// of the geometric centre: the rule is that the near-white mark reaches the middle
-		// of the tile at the tab icon's own size, not that all four central pixels are it.
-		expect({ markAtCentre: Math.max(...centreReds) }).toEqual({ markAtCentre: LIGHT_MARK_RGB[0] })
-		expect(centreReds.filter((red) => red > 0x80).length).toBeGreaterThanOrEqual(2)
+		// of the geometric centre: the mark reaches the middle of the favicon rather than
+		// owning all four central pixels.
+		expect(centre.filter((pixel) => isColour(pixel, LIGHT_MARK_RGB)).length).toBeGreaterThanOrEqual(
+			2,
+		)
 		// The fillet leaves each corner outside the tile's rounded rectangle, so no
 		// corner may be opaque: an opaque square here is the bug this test exists for.
 		for (const corner of corners) {

@@ -177,15 +177,14 @@ describe("Brand Asset manifest", () => {
 		}
 	})
 
-	it("names every static export in the lint:package exclusion list", async () => {
+	it("excludes every static export from attw's entrypoint checks, so a new export cannot fail lint:package", async () => {
 		const manifest = await packageManifest()
-		const args = (manifest.scripts["lint:package"] ?? "").split(/\s+/)
-		const flagAt = args.indexOf("--exclude-entrypoints")
-		// The flag is the last argument, so everything after it is the exclusion list:
-		// an entrypoint `attw` does not know about fails `lint:package`.
-		const excluded = args.slice(flagAt + 1).sort()
+		const script = manifest.scripts["lint:package"] ?? ""
+		const flag = "--exclude-entrypoints"
+		const tail = script.slice(script.indexOf(flag) + flag.length).split(/\s+/)
+		const excluded = tail.filter((arg) => arg.startsWith("./")).sort()
 
-		expect(flagAt).toBeGreaterThan(-1)
+		expect(script).toContain(flag)
 		expect(excluded).toEqual([...brandAssetExportPaths, ...brandTypefaceExportPaths].sort())
 	})
 
