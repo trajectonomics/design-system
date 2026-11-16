@@ -17,6 +17,7 @@ const BRAND_SOURCE_SVG = join(PACKAGE_ROOT, "..", "..", "brand-source", "svg")
 interface PackageManifest {
 	readonly exports: Record<string, string>
 	readonly files: readonly string[]
+	readonly scripts: Record<string, string>
 }
 
 async function packageManifest(): Promise<PackageManifest> {
@@ -162,22 +163,30 @@ describe("Brand Asset manifest", () => {
 		)
 	})
 
-	it("paints the tile near-black with a near-white mark in light, and the inverse in dark", async () => {
+	it("paints each tile at the built-in Themes' primary pair, swapped for the dark scheme", async () => {
+		const roles = {
+			tile: { light: "#171717", dark: "#e5e5e5" },
+			mark: { light: "#fafafa", dark: "#171717" },
+		}
+
 		for (const exportPath of ["./logo/mark-tile.svg", faviconSvgExportPath]) {
 			const svg = await sourceSvg(exportPath)
-			const tile = schemeFills(svg, "rect")
-			const mark = schemeFills(svg, "path")
+			const fills = { tile: schemeFills(svg, "rect"), mark: schemeFills(svg, "path") }
 
-			expect({ exportPath, tile, mark, darkTile: brightness(tile.light) < 0.5 }).toEqual({
-				exportPath,
-				tile,
-				mark,
-				darkTile: true,
-			})
-			expect(brightness(mark.light) > 0.5).toBe(true)
-			expect(brightness(tile.dark) > 0.5).toBe(true)
-			expect(brightness(mark.dark) < 0.5).toBe(true)
+			expect({ exportPath, ...fills }).toEqual({ exportPath, ...roles })
 		}
+	})
+
+	it("names every static export in the lint:package exclusion list", async () => {
+		const manifest = await packageManifest()
+		const args = (manifest.scripts["lint:package"] ?? "").split(/\s+/)
+		const flagAt = args.indexOf("--exclude-entrypoints")
+		// The flag is the last argument, so everything after it is the exclusion list:
+		// an entrypoint `attw` does not know about fails `lint:package`.
+		const excluded = args.slice(flagAt + 1).sort()
+
+		expect(flagAt).toBeGreaterThan(-1)
+		expect(excluded).toEqual([...brandAssetExportPaths, ...brandTypefaceExportPaths].sort())
 	})
 
 	it("keeps the owner's licence beside the art it governs", async () => {

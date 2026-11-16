@@ -125,17 +125,26 @@ describe("Brand Typeface import", () => {
 })
 
 describe("Brand Asset import", () => {
-	it("resolves a Brand Asset subpath to a file the build emits", async () => {
+	it("resolves both Brand Asset subpaths the fixture imports to files the build emits", async () => {
 		const files = await builtFiles()
-		const svg = files.find((name) => name.startsWith("mark-on-light-") && name.endsWith(".svg"))
-		if (svg === undefined) throw new Error(`No emitted Brand Asset in ${DIST_ASSETS}`)
-		const contents = await readFile(join(DIST_ASSETS, svg), "utf8")
-
-		expect(contents).toContain('viewBox="0 0 1024 1024"')
-		expect(contents).toContain('fill="#000"')
-
 		const script = files.find((name) => name.endsWith(".js"))
 		if (script === undefined) throw new Error(`No emitted script in ${DIST_ASSETS}`)
-		expect(await readFile(join(DIST_ASSETS, script), "utf8")).toContain(svg)
+		const code = await readFile(join(DIST_ASSETS, script), "utf8")
+
+		const fixed = files.find((name) => name.startsWith("mark-on-light-") && name.endsWith(".svg"))
+		if (fixed === undefined) throw new Error(`No emitted fixed-colour mark in ${DIST_ASSETS}`)
+		const fixedContents = await readFile(join(DIST_ASSETS, fixed), "utf8")
+
+		expect(fixedContents).toContain('viewBox="0 0 1024 1024"')
+		expect(fixedContents).toContain('fill="#000"')
+		expect(code).toContain(fixed)
+
+		const tile = files.find((name) => name.startsWith("mark-tile-") && name.endsWith(".svg"))
+		if (tile === undefined) throw new Error(`No emitted tiled mark in ${DIST_ASSETS}`)
+		const tileContents = await readFile(join(DIST_ASSETS, tile), "utf8")
+
+		expect(tileContents).toContain('viewBox="0 0 1024 1024"')
+		expect(tileContents).toContain("prefers-color-scheme")
+		expect(code).toContain(tile)
 	})
 })
