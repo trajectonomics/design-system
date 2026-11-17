@@ -55,10 +55,18 @@ Vue, Svelte and Astro.
 
 The `-on-light` and `-on-dark` files carry a fixed colour, so a background you cannot inspect still
 shows the mark. The plain `mark.svg` and `wordmark.svg` use `currentColor`: inline the file and they
-take the surrounding text colour, which is what a theme-aware header wants. `mark-tile.svg` is the
-mark on its filled tile for `<img>` consumers that cannot compose a tile in CSS: the tile is
+take the surrounding text colour, which is what a theme-aware header wants. `mark-tile.svg` is the mark on its filled tile for `<img>` consumers that cannot compose a tile in CSS: the tile is
 near-black with a near-white mark under `prefers-color-scheme: light` and near-white with a dark
-mark under `dark`, matching the `bg-primary`/`text-primary-foreground` pair in both Themes.
+mark under `dark`, matching the `bg-primary`/`text-primary-foreground` pair in both Themes. The two
+colours are written into the art as the values the built-in `light` and `dark` Themes give
+`color.primary` and `color.primary.foreground` — `#171717` behind a `#fafafa` mark, then `#e5e5e5`
+behind a `#171717` mark — so a custom Theme that resolves those roles differently is not followed by
+the file.
+
+The tile follows the page's colour scheme, not the band it sits on: `color.stage` is `#171717` in the
+light Theme, so the light-scheme tile merges into the dark Stage Surface and only its mark shows.
+Inline `./logo/mark.svg` with that band's `text-stage-foreground` there instead of stacking the tile
+on it.
 
 ## Using the Favicon Set
 

@@ -18,7 +18,7 @@ This repository is a private Bun workspace with four published packages and one 
 | [`@trajectonomics/design-system`](./packages/core) | `packages/core` | Pure data: Primitive Tokens, Semantic Tokens, the Semantic Token Contract and the built-in `light` and `dark` Themes. No dependencies. |
 | [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind Theme Stylesheet. |
 | [`@trajectonomics/design-system-svelte`](./packages/svelte) | `packages/svelte` | Svelte 5 components and Hooks, with one compiled stylesheet. Consumers do not need Tailwind. |
-| [`@trajectonomics/design-system-assets`](./packages/assets) | `packages/assets` | Brand Assets (logo mark, wordmark, Favicon Set) and the Brand Typeface (Inter woff2 and its `@font-face` stylesheet), as static files. No dependencies. |
+| [`@trajectonomics/design-system-assets`](./packages/assets) | `packages/assets` | Brand Assets (logo mark, tiled mark, wordmark, Favicon Set) and the Brand Typeface (Inter woff2 and its `@font-face` stylesheet), as static files. No dependencies. |
 | Storybook (private) | [`apps/storybook`](./apps/storybook) | Component previews with a Theme switcher and the accessibility addon. Never published. |
 
 Dependency direction is `svelte` → `theme` → `core`. `theme` and `svelte` declare their dependencies
@@ -34,7 +34,7 @@ bun add @trajectonomics/design-system @trajectonomics/design-system-theme
 # Svelte components and Hooks
 bun add @trajectonomics/design-system-svelte @trajectonomics/design-system-theme @trajectonomics/design-system
 
-# Brand Assets (logo mark, wordmark, Favicon Set) and the Brand Typeface (Inter)
+# Brand Assets (logo mark, tiled mark, wordmark, Favicon Set) and the Brand Typeface (Inter)
 bun add @trajectonomics/design-system-assets
 ```
 
@@ -215,10 +215,10 @@ first and updated `theme` and `svelte` peer ranges.
 ## Brand Assets
 
 `@trajectonomics/design-system-assets` ships the art a site needs as static files with no
-dependencies: the logo mark, the wordmark and the Favicon Set. The art comes from the owner, and the
-package adds no Design Tokens. The same package also ships the Brand Typeface as opt-in exports —
-`./fonts/inter.css` plus the Inter woff2 files — for a site that wants the Brand Typeface; see
-"Web apps without Svelte" above.
+dependencies: the logo mark, the mark on its tile, the wordmark and the Favicon Set. The art comes
+from the owner, and the package adds no Design Tokens. The same package also ships the Brand Typeface
+as opt-in exports — `./fonts/inter.css` plus the Inter woff2 files — for a site that wants the Brand
+Typeface; see "Web apps without Svelte" above.
 
 ```bash
 bun add @trajectonomics/design-system-assets
@@ -235,12 +235,21 @@ The `-on-light` and `-on-dark` files carry a fixed colour, for `<img>` on a back
 `mark.svg` and `wordmark.svg` use `currentColor`, for inlining where the mark should take the
 surrounding text colour.
 
-The Favicon Set is `favicon.svg` (which follows `prefers-color-scheme` by itself), `favicon.ico`
-(16, 32 and 48 px) and the 180, 192 and 512 px PNGs. The rasters cannot adapt, so they are the
-light-mode rendering: the black mark on a transparent background. iOS composites a transparent Apple
-touch icon on black, so draw the mark on your own background if it must read on a dark home screen.
-Copy the files to a stable URL and declare them SVG first, because Safari largely ignores an SVG
-favicon:
+`mark-tile.svg` is the mark on its filled, rounded tile, for `<img>` consumers that cannot paint a
+tile in CSS: near-black with a near-white mark under `prefers-color-scheme: light`, near-white with a
+dark mark under `dark`. Those two colours are the built-in Themes' `color.primary` and
+`color.primary.foreground`, so the file matches a header that paints `bg-primary`
+`text-primary-foreground`; a custom Theme that resolves the roles differently is not followed. The
+tile follows the page's colour scheme rather than the band it sits on, and `color.stage` is
+near-black in both Themes, so on the dark Stage Surface inline `mark.svg` with that band's foreground
+instead of stacking the tile on it.
+
+The Favicon Set is `favicon.svg` (the mark on its tile, following `prefers-color-scheme` by itself),
+`favicon.ico` (16, 32 and 48 px) and the 180, 192 and 512 px PNGs. The rasters cannot adapt, so they
+are the light-scheme rendering: the near-white mark on the opaque near-black tile, with only the
+rounded corners transparent. The Apple touch icon and the Android icons therefore carry their own
+background, and neither depends on a platform compositing a transparent icon. Copy the files to a
+stable URL and declare them SVG first, because Safari largely ignores an SVG favicon:
 
 ```bash
 cp node_modules/@trajectonomics/design-system-assets/dist/favicon/* public/

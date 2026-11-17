@@ -8,6 +8,7 @@ import {
 	distPath,
 	faviconIco,
 	faviconPngs,
+	faviconSvgExportPath,
 } from "./brand-assets"
 import {
 	brandFontSubsets,
@@ -19,6 +20,7 @@ import {
 } from "./brand-typeface"
 import { buildAssets } from "./build-assets"
 import { pngSize, readIcoSizes } from "./raster"
+import { rasteriseSvgToRgba } from "./rasterise"
 import { inspectSvg } from "./svg-safety"
 
 const PACKAGE_ROOT = join(import.meta.dir, "..")
@@ -43,6 +45,21 @@ afterAll(async () => {
 async function builtExport(exportPath: string): Promise<Uint8Array> {
 	return new Uint8Array(await Bun.file(join(outputDirectory, distPath(exportPath))).arrayBuffer())
 }
+
+/** The channels of one pixel in a rendered square RGBA image, from its top-left origin. */
+function pixelAt(pixels: Uint8Array, sizePx: number, x: number, y: number): readonly number[] {
+	const start = (y * sizePx + x) * 4
+	return Array.from(pixels.slice(start, start + 4))
+}
+
+/** Whether a pixel is the colour an SVG asks for, allowing for an anti-aliased edge. */
+function isColour(pixel: readonly number[], rgb: readonly number[], tolerance = 3): boolean {
+	return rgb.every((channel, index) => Math.abs((pixel[index] ?? -1) - channel) <= tolerance)
+}
+
+/** The light-scheme tile and mark the favicon SVG writes as literal hexes. */
+const LIGHT_TILE_RGB: readonly [number, number, number] = [0x17, 0x17, 0x17]
+const LIGHT_MARK_RGB: readonly [number, number, number] = [0xfa, 0xfa, 0xfa]
 
 describe("Brand Asset build", () => {
 	it("writes every exported file into the output directory, so every export resolves", async () => {
@@ -82,6 +99,40 @@ describe("Brand Asset build", () => {
 		const bytes = await builtExport(faviconIco.exportPath)
 
 		expect(readIcoSizes(bytes)).toEqual([...faviconIco.sizesPx])
+	})
+
+	it("keeps the smallest favicon a tile whose mark reaches the centre, with transparent fillets", async () => {
+		const sizePx = Math.min(...faviconIco.sizesPx)
+		const svg = new TextDecoder().decode(await builtExport(faviconSvgExportPath))
+		const pixels = await rasteriseSvgToRgba(svg, sizePx)
+		const middle = Math.floor(sizePx / 2)
+		const edge = pixelAt(pixels, sizePx, middle, 0)
+		const centre = [
+			pixelAt(pixels, sizePx, middle - 1, middle - 1),
+			pixelAt(pixels, sizePx, middle, middle - 1),
+			pixelAt(pixels, sizePx, middle - 1, middle),
+			pixelAt(pixels, sizePx, middle, middle),
+		]
+		const corners = [
+			pixelAt(pixels, sizePx, 0, 0),
+			pixelAt(pixels, sizePx, sizePx - 1, 0),
+			pixelAt(pixels, sizePx, 0, sizePx - 1),
+			pixelAt(pixels, sizePx, sizePx - 1, sizePx - 1),
+		]
+
+		// The middle of the top edge is inside the tile, so it is the tile colour at full opacity.
+		expect({ edge }).toEqual({ edge: [...LIGHT_TILE_RGB, 255] })
+		// The mark's stem is copied from the owner's art unchanged, so it sits just left
+		// of the geometric centre: the mark reaches the middle of the favicon rather than
+		// owning all four central pixels.
+		expect(centre.filter((pixel) => isColour(pixel, LIGHT_MARK_RGB)).length).toBeGreaterThanOrEqual(
+			2,
+		)
+		// The fillet leaves each corner outside the tile's rounded rectangle, so no
+		// corner may be opaque: an opaque square here is the bug this test exists for.
+		for (const corner of corners) {
+			expect(corner[3] ?? 255).toBeLessThan(128)
+		}
 	})
 
 	it("refuses to ship an SVG that carries active content", async () => {

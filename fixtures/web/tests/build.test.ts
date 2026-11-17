@@ -124,18 +124,32 @@ describe("Brand Typeface import", () => {
 	})
 })
 
+/** The Brand Assets the fixture imports, by emitted-filename prefix, and the markers each carries. */
+const importedBrandAssets = [
+	{ prefix: "mark-on-light-", markers: ['viewBox="0 0 1024 1024"', 'fill="#000"'] },
+	{ prefix: "mark-tile-", markers: ['viewBox="0 0 1024 1024"', "prefers-color-scheme"] },
+] as const
+
 describe("Brand Asset import", () => {
-	it("resolves a Brand Asset subpath to a file the build emits", async () => {
+	it("resolves both Brand Asset subpaths the fixture imports to files the build emits", async () => {
 		const files = await builtFiles()
-		const svg = files.find((name) => name.startsWith("mark-on-light-") && name.endsWith(".svg"))
-		if (svg === undefined) throw new Error(`No emitted Brand Asset in ${DIST_ASSETS}`)
-		const contents = await readFile(join(DIST_ASSETS, svg), "utf8")
-
-		expect(contents).toContain('viewBox="0 0 1024 1024"')
-		expect(contents).toContain('fill="#000"')
-
 		const script = files.find((name) => name.endsWith(".js"))
 		if (script === undefined) throw new Error(`No emitted script in ${DIST_ASSETS}`)
-		expect(await readFile(join(DIST_ASSETS, script), "utf8")).toContain(svg)
+		const code = await readFile(join(DIST_ASSETS, script), "utf8")
+
+		for (const { prefix, markers } of importedBrandAssets) {
+			const file = files.find((name) => name.startsWith(prefix) && name.endsWith(".svg"))
+			if (file === undefined) throw new Error(`No emitted ${prefix} Brand Asset in ${DIST_ASSETS}`)
+			const contents = await readFile(join(DIST_ASSETS, file), "utf8")
+
+			for (const marker of markers) {
+				expect({ file, marker, present: contents.includes(marker) }).toEqual({
+					file,
+					marker,
+					present: true,
+				})
+			}
+			expect({ file, referenced: code.includes(file) }).toEqual({ file, referenced: true })
+		}
 	})
 })
