@@ -2,7 +2,7 @@ import { primitiveTokens } from "../primitives"
 import { defineBuiltInTheme, type RolePrimitives, type Theme } from "../theme"
 import { nonColorRolePrimitives } from "./non-color-roles"
 
-const { white, neutral50, neutral100, neutral200, neutral400, neutral600, neutral900, neutral950 } =
+const { white, neutral50, neutral100, neutral200, neutral500, neutral600, neutral900, neutral950 } =
 	primitiveTokens
 const { red600, orange700 } = primitiveTokens
 
@@ -25,8 +25,8 @@ const rolePrimitives: RolePrimitives = {
 	"color.destructive": red600,
 	"color.destructive.foreground": white,
 	"color.border": neutral200,
-	"color.input": neutral200,
-	"color.ring": neutral400,
+	"color.input": neutral500,
+	"color.ring": neutral500,
 	"color.stage": neutral900,
 	"color.stage.foreground": neutral50,
 }
