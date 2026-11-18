@@ -25,6 +25,10 @@ A named set of values that resolves every Semantic Token for a given context (fo
 ### Semantic Token Contract
 The fixed, closed set of Semantic Token names (roles) that every Theme must resolve, together with the Token Type each role accepts and the version of that set. It is defined only in this repository; no consumer can add or remove names. Every Theme is created in this repository first and then imported by client repositories.
 
+### Contrast Pair
+
+A background role and the content or indicator role a Theme paints on it, together with the minimum contrast ratio that applies to it: 4.5:1 where the role carries text, 3:1 where it is the focus indicator or the boundary that identifies a control. Every built-in Theme is held to every Contrast Pair before it ships, and a colour role may not join the Semantic Token Contract without appearing in one or stating why it is not one.
+
 ### Theme CSS
 The CSS form of a Theme: the values it resolves, expressed as CSS for an element and its descendants. Applying a Theme to an element makes that Theme's CSS apply to the element.
 
