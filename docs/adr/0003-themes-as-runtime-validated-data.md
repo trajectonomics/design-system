@@ -122,3 +122,41 @@ These guardrails are the parts that must exist now, and each is enforced by at l
   `color.muted.foreground` to `neutral.600` for WCAG AA on `color.muted`. The colour role list above
   remains the v1 colour set, and the closed-world, version-bump and `MISSING_CONTRACT_ROLE` rules
   apply unchanged.
+
+## Amendment: a contrast floor for the built-in Themes
+
+- 2026-11-17: `trajectonomics/design-system#83` holds the built-in Themes to WCAG 2.2 AA contrast, and
+  records the rule here because this ADR's Consequences list "contrast enforcement" among the work it
+  does not cover.
+
+  A **Contrast Pair** is a background role and the content or indicator role a Theme paints on it. The
+  built-in Themes are held to the pairs they actually paint:
+
+  - each surface role with the content role designed to sit on it — `background`/`foreground`,
+    `card`/`card.foreground`, `popover`/`popover.foreground`, `primary`/`primary.foreground`,
+    `secondary`/`secondary.foreground`, `muted`/`muted.foreground`, `accent`/`accent.foreground`,
+    `destructive`/`destructive.foreground`, `stage`/`stage.foreground` — at 4.5:1;
+  - the page's own text roles, `foreground` and `muted.foreground`, on the neutral surfaces
+    (`background`, `card`, `popover`, `muted`, `secondary`) at 4.5:1, because a page paints body and
+    secondary text on those bands without switching the text role;
+  - `color.ring` against `background`, `card`, `popover`, `muted`, `secondary` and `stage` at 3:1: the
+    focus indicator, which `Button` offsets with `ring-offset-2 ring-offset-background`, so the ring
+    never meets the fill of the control it surrounds;
+  - `color.input` against `background`, `card`, `popover`, `muted` and `secondary` at 3:1, because an
+    input's boundary is the visual information that identifies the control (WCAG 2.2 SC 1.4.11).
+
+  There is no large-text allowance: a Theme carries no font size or weight, so 4.5:1 applies to every
+  text pair. A filled control's fill against the page is not a Contrast Pair — the label identifies the
+  control and the text floor already holds it — and neither is `color.border`, a decorative divider and
+  card edge rather than the boundary of a control.
+
+  **Enforcement is a test, not validation.** The floor is asserted by `bun test` in `core`, over every
+  Theme the package ships, so `bun run check` fails when a value drops below it. It adds no
+  `ThemeErrorCode`: a Theme whose values are valid but unreadable is not invalid input, it is a design
+  decision that broke a floor. Every colour role in the Contract must appear in a pair or in a written
+  exclusion that says why it is not one, so a new role cannot ship unmeasured.
+
+  Contrast enforcement for Themes generated from client configuration (white label) stays deferred, as
+  this ADR's Consequences say: deriving a palette, and deciding what happens when a generated Theme
+  fails, is its own Spec and its own ADR. `trajectonomics/site`'s page check is unchanged and stays the
+  authority on which text sits on which background in a built page.
