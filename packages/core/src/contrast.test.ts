@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { contrastFailures, contrastRatio, describeContrastFailure } from "./contrast"
-import { TEXT_CONTRAST_PAIRS } from "./contrast-pairs"
+import { FOCUS_INDICATOR_CONTRAST_PAIRS, TEXT_CONTRAST_PAIRS } from "./contrast-pairs"
 import type { Theme } from "./theme"
 import { themes } from "./themes"
 
@@ -27,6 +27,14 @@ describe("built-in Themes", () => {
 	it("meet the AA text floor on every Contrast Pair", () => {
 		for (const theme of themes) {
 			expect(contrastFailures(theme, TEXT_CONTRAST_PAIRS).map(describeContrastFailure)).toEqual([])
+		}
+	})
+
+	it("meet the focus-indicator floor on every surface a control is offset against", () => {
+		for (const theme of themes) {
+			expect(
+				contrastFailures(theme, FOCUS_INDICATOR_CONTRAST_PAIRS).map(describeContrastFailure),
+			).toEqual([])
 		}
 	})
 
