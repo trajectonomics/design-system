@@ -17,6 +17,15 @@ const FOCUS_INDICATOR_SURFACES: readonly SemanticTokenName[] = [
 	"color.stage",
 ]
 
+/** The surfaces an input's boundary is drawn against, so the boundary identifies the control. */
+const COMPONENT_BOUNDARY_SURFACES: readonly SemanticTokenName[] = [
+	"color.background",
+	"color.card",
+	"color.popover",
+	"color.muted",
+	"color.secondary",
+]
+
 function textPair(background: SemanticTokenName, foreground: SemanticTokenName): ContrastPair {
 	return Object.freeze({ background, foreground, floor: TEXT_CONTRAST_FLOOR })
 }
@@ -62,10 +71,20 @@ export const FOCUS_INDICATOR_CONTRAST_PAIRS: readonly ContrastPair[] = Object.fr
 	FOCUS_INDICATOR_SURFACES.map((background) => nonTextPair(background, "color.ring")),
 )
 
+/**
+ * The boundary that identifies an input against the surfaces it sits on.
+ *
+ * The `outline` Button reuses `color.input` for its border, so it is held to the same floor.
+ */
+export const COMPONENT_BOUNDARY_CONTRAST_PAIRS: readonly ContrastPair[] = Object.freeze(
+	COMPONENT_BOUNDARY_SURFACES.map((background) => nonTextPair(background, "color.input")),
+)
+
 /** Every Contrast Pair the built-in Themes are held to. */
 export const CONTRAST_PAIRS: readonly ContrastPair[] = Object.freeze([
 	...TEXT_CONTRAST_PAIRS,
 	...FOCUS_INDICATOR_CONTRAST_PAIRS,
+	...COMPONENT_BOUNDARY_CONTRAST_PAIRS,
 ])
 
 /** A colour role the table does not measure, and why it is not a Contrast Pair. */
@@ -80,11 +99,6 @@ export const CONTRAST_EXCLUSIONS: readonly ContrastExclusion[] = Object.freeze([
 		role: "color.border",
 		reason:
 			"a decorative divider and card edge, not the boundary that identifies a control, so WCAG 2.2 SC 1.4.11 does not hold it to a non-text floor",
-	}),
-	Object.freeze({
-		role: "color.input",
-		reason:
-			"the component-boundary Ticket that follows adds its rows to the table and holds it to 3:1",
 	}),
 ])
 

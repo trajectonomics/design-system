@@ -25,7 +25,7 @@ const rolePrimitives: RolePrimitives = {
 	"color.destructive": red600,
 	"color.destructive.foreground": white,
 	"color.border": neutral200,
-	"color.input": neutral200,
+	"color.input": neutral500,
 	"color.ring": neutral500,
 	"color.stage": neutral900,
 	"color.stage.foreground": neutral50,

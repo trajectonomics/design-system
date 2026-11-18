@@ -1,6 +1,10 @@
 import { describe, expect, it } from "bun:test"
 import { contrastFailures, contrastRatio, describeContrastFailure } from "./contrast"
-import { FOCUS_INDICATOR_CONTRAST_PAIRS, TEXT_CONTRAST_PAIRS } from "./contrast-pairs"
+import {
+	COMPONENT_BOUNDARY_CONTRAST_PAIRS,
+	FOCUS_INDICATOR_CONTRAST_PAIRS,
+	TEXT_CONTRAST_PAIRS,
+} from "./contrast-pairs"
 import type { Theme } from "./theme"
 import { themes } from "./themes"
 
@@ -34,6 +38,14 @@ describe("built-in Themes", () => {
 		for (const theme of themes) {
 			expect(
 				contrastFailures(theme, FOCUS_INDICATOR_CONTRAST_PAIRS).map(describeContrastFailure),
+			).toEqual([])
+		}
+	})
+
+	it("meet the component-boundary floor on every surface a control sits on", () => {
+		for (const theme of themes) {
+			expect(
+				contrastFailures(theme, COMPONENT_BOUNDARY_CONTRAST_PAIRS).map(describeContrastFailure),
 			).toEqual([])
 		}
 	})
