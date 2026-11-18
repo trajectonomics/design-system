@@ -125,7 +125,7 @@ These guardrails are the parts that must exist now, and each is enforced by at l
 
 ## Amendment: a contrast floor for the built-in Themes
 
-- 2026-11-17: `trajectonomics/design-system#83` holds the built-in Themes to WCAG 2.2 AA contrast, and
+- 2026-11-18: `trajectonomics/design-system#83` holds the built-in Themes to WCAG 2.2 AA contrast, and
   records the rule here because this ADR's Consequences list "contrast enforcement" among the work it
   does not cover.
 
