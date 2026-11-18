@@ -1,7 +1,7 @@
 /**
  * Reads what this repository's documentation installs and imports: every `bun add` line, every
- * package subpath a README imports, and the Semantic Token Contract version the root README prints.
- * Pure: the Markdown of the READMEs in, the documented packages and subpaths out.
+ * package entrypoint or subpath a README imports, and the Semantic Token Contract version a README
+ * prints. Pure: the Markdown of the READMEs in, the documented packages and subpaths out.
  */
 
 /** The core package, whose Semantic Token Contract version the root README prints. */
@@ -26,7 +26,7 @@ export interface InstallLine {
 	readonly arguments: readonly InstallArgument[]
 }
 
-/** A package subpath a fenced CSS or script import names, such as `./themes/light.css`. */
+/** A package entrypoint or subpath a fenced CSS or script import names, such as `./themes/light.css`. */
 export interface DocumentedSpecifier {
 	readonly readme: string
 	readonly line: number
@@ -34,9 +34,10 @@ export interface DocumentedSpecifier {
 	readonly subpath: string
 }
 
-/** The Semantic Token Contract version the root README prints. */
+/** The Semantic Token Contract version a README prints, and where it prints it. */
 export interface DocumentedContractVersion {
 	readonly readme: string
+	readonly line: number
 	readonly version: number
 }
 
@@ -44,7 +45,7 @@ export interface DocumentedContractVersion {
 export interface Documentation {
 	readonly installLines: readonly InstallLine[]
 	readonly specifiers: readonly DocumentedSpecifier[]
-	readonly contractVersion?: DocumentedContractVersion
+	readonly contractVersions: readonly DocumentedContractVersion[]
 }
 
 function isDesignSystemPackage(name: string): boolean {
@@ -60,7 +61,9 @@ interface Fence {
 /** The fenced code blocks of a Markdown document, in source order, with their first body line. */
 function fencedBlocks(markdown: string): readonly Fence[] {
 	const blocks: Fence[] = []
-	for (const match of markdown.matchAll(/^```(\S*)\n([\s\S]*?)^```$/gm)) {
+	for (const match of markdown.matchAll(
+		/^[ \t]*```(\S*)[ \t]*\r?\n([\s\S]*?)^[ \t]*```[ \t]*$/gm,
+	)) {
 		const start = match.index ?? 0
 		blocks.push({
 			language: (match[1] ?? "").toLowerCase(),
@@ -83,29 +86,43 @@ function installArguments(text: string): readonly InstallArgument[] {
 	})
 }
 
-/** A package subpath a quoted specifier names, such as `./themes/light.css`; a bare name is not one. */
+/** The package a quoted specifier names, and its entrypoint (`.`) or subpath (`./themes/light.css`). */
 function specifierTarget(value: string): { packageName: string; subpath: string } | undefined {
 	const [scope, folder, ...rest] = value.split("/")
-	if (scope !== "@trajectonomics" || folder === undefined || rest.length === 0) return undefined
+	if (scope !== "@trajectonomics" || folder === undefined) return undefined
 	const packageName = `@trajectonomics/${folder}`
 	if (!isDesignSystemPackage(packageName)) return undefined
-	return { packageName, subpath: `./${rest.join("/")}` }
+	return { packageName, subpath: rest.length === 0 ? "." : `./${rest.join("/")}` }
 }
 
-const SCRIPT_LANGUAGES = new Set(["js", "javascript", "ts", "typescript", "svelte"])
-const SCRIPT_IMPORT = /import\s+(?:[^"']*\s+from\s+)?["']([^"']+)["']/g
+const SCRIPT_LANGUAGES = new Set([
+	"js",
+	"javascript",
+	"ts",
+	"typescript",
+	"tsx",
+	"jsx",
+	"mts",
+	"mjs",
+	"svelte",
+])
+const SCRIPT_IMPORT = /import\s*(?:\(\s*|(?:[^"']*\s+from\s+))?["']([^"']+)["']/g
 const CSS_IMPORT = /@import\s+["']([^"']+)["']/g
 const CONTRACT_VERSION = /console\.log\(semanticTokenContract\.version\)\s*\/\/\s*(\d+)/
 
-/** The import form a fenced block's quoted specifier can take, or none for a block that has none. */
-function importPattern(language: string): RegExp | undefined {
-	if (language === "css") return CSS_IMPORT
-	return SCRIPT_LANGUAGES.has(language) ? SCRIPT_IMPORT : undefined
+/** The import forms a fenced block can carry; a Svelte block carries both a script and a stylesheet. */
+function importPatterns(language: string): readonly RegExp[] {
+	if (language === "css") return [CSS_IMPORT]
+	if (language === "svelte") return [SCRIPT_IMPORT, CSS_IMPORT]
+	return SCRIPT_LANGUAGES.has(language) ? [SCRIPT_IMPORT] : []
 }
 
-function printedContractVersion(markdown: string): number | undefined {
-	const printed = CONTRACT_VERSION.exec(markdown)?.[1]
-	return printed === undefined ? undefined : Number(printed)
+/** The Contract version a README prints, with the line it prints it on. */
+function printedContractVersion(markdown: string): { version: number; line: number } | undefined {
+	const match = CONTRACT_VERSION.exec(markdown)
+	if (match?.[1] === undefined) return undefined
+	const line = markdown.slice(0, match.index).split("\n").length
+	return { version: Number(match[1]), line }
 }
 
 function parseBlock(
@@ -119,39 +136,58 @@ function parseBlock(
 			into.installLines.push({ readme, line: block.firstLine + index, arguments: arguments_ })
 		}
 	})
-	const pattern = importPattern(block.language)
-	if (pattern === undefined) return
 	const body = block.lines.join("\n")
-	for (const match of body.matchAll(pattern)) {
-		const target = match[1] === undefined ? undefined : specifierTarget(match[1])
-		if (target === undefined) continue
-		const line = block.firstLine + body.slice(0, match.index).split("\n").length - 1
-		into.specifiers.push({ readme, line, ...target })
-	}
-}
-
-/** The install lines, imported subpaths and printed Contract version of the given READMEs. */
-export function parseDocumentation(readmes: readonly Readme[]): Documentation {
-	const parsed = { installLines: [] as InstallLine[], specifiers: [] as DocumentedSpecifier[] }
-	let contractVersion: DocumentedContractVersion | undefined
-	for (const readme of readmes) {
-		for (const block of fencedBlocks(readme.markdown)) parseBlock(readme.path, block, parsed)
-		const printed = printedContractVersion(readme.markdown)
-		if (printed !== undefined && contractVersion === undefined) {
-			contractVersion = { readme: readme.path, version: printed }
+	for (const pattern of importPatterns(block.language)) {
+		for (const match of body.matchAll(pattern)) {
+			const target = match[1] === undefined ? undefined : specifierTarget(match[1])
+			if (target === undefined) continue
+			const line = block.firstLine + body.slice(0, match.index).split("\n").length - 1
+			into.specifiers.push({ readme, line, ...target })
 		}
 	}
-	return { ...parsed, ...(contractVersion === undefined ? {} : { contractVersion }) }
 }
 
-/** The tag the documentation installs a package at; a package it only imports is read as `latest`. */
-export function documentedTag(documentation: Documentation, name: string): string {
+/** Drop a specifier a Svelte block reads twice, once as a script import and once as a style import. */
+function uniqueSpecifiers(
+	specifiers: readonly DocumentedSpecifier[],
+): readonly DocumentedSpecifier[] {
+	const byLocation = new Map<string, DocumentedSpecifier>()
+	for (const specifier of specifiers) {
+		const key = `${specifier.readme}:${specifier.line}:${specifier.packageName}:${specifier.subpath}`
+		byLocation.set(key, specifier)
+	}
+	return [...byLocation.values()]
+}
+
+/** The install lines, imported specifiers and printed Contract versions of the given READMEs. */
+export function parseDocumentation(readmes: readonly Readme[]): Documentation {
+	const installLines: InstallLine[] = []
+	const specifiers: DocumentedSpecifier[] = []
+	const contractVersions: DocumentedContractVersion[] = []
+	for (const readme of readmes) {
+		for (const block of fencedBlocks(readme.markdown)) {
+			parseBlock(readme.path, block, { installLines, specifiers })
+		}
+		const printed = printedContractVersion(readme.markdown)
+		if (printed !== undefined) {
+			contractVersions.push({ readme: readme.path, line: printed.line, version: printed.version })
+		}
+	}
+	return { installLines, specifiers: uniqueSpecifiers(specifiers), contractVersions }
+}
+
+/**
+ * The tag the documentation installs a package at, preferring the README a statement came from; a
+ * package it only imports is read as `latest`.
+ */
+export function documentedTag(documentation: Documentation, name: string, readme?: string): string {
 	for (const line of documentation.installLines) {
+		if (readme !== undefined && line.readme !== readme) continue
 		for (const argument of line.arguments) {
 			if (argument.name === name) return argument.tag
 		}
 	}
-	return "latest"
+	return readme === undefined ? "latest" : documentedTag(documentation, name)
 }
 
 /** Every tag the documentation installs or imports, so a tag no publish carries is still resolved. */
@@ -162,10 +198,11 @@ export function requestedPackages(documentation: Documentation): readonly Instal
 	for (const line of documentation.installLines)
 		for (const argument of line.arguments) add(argument)
 	for (const documented of documentation.specifiers) {
-		add({ name: documented.packageName, tag: documentedTag(documentation, documented.packageName) })
+		const tag = documentedTag(documentation, documented.packageName, documented.readme)
+		add({ name: documented.packageName, tag })
 	}
-	if (documentation.contractVersion !== undefined) {
-		add({ name: CORE_PACKAGE, tag: documentedTag(documentation, CORE_PACKAGE) })
+	for (const printed of documentation.contractVersions) {
+		add({ name: CORE_PACKAGE, tag: documentedTag(documentation, CORE_PACKAGE, printed.readme) })
 	}
 	return [...requested.values()]
 }

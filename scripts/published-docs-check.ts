@@ -1,11 +1,12 @@
 /**
  * Checks what the READMEs document against what a published tag actually ships: an install line, a
- * package subpath the README imports, and the Semantic Token Contract version the root README
+ * package entrypoint or subpath the README imports, and the Semantic Token Contract version a README
  * prints. Pure: the documentation and the packed tarballs in, findings out.
  */
 import {
 	CORE_PACKAGE,
 	type Documentation,
+	type DocumentedContractVersion,
 	type DocumentedSpecifier,
 	documentedTag,
 	type InstallArgument,
@@ -15,7 +16,6 @@ import {
 export interface PackedPackage {
 	readonly name: string
 	readonly tag: string
-	readonly version: string
 	readonly exports: unknown
 	/** Package-relative paths the tarball ships, such as `dist/themes/light.css`. */
 	readonly files: readonly string[]
@@ -25,6 +25,7 @@ export interface PackedPackage {
 /** One documented statement a tag does not ship, with the source that made it. */
 export interface Finding {
 	readonly readme: string
+	readonly line: number
 	readonly packageName: string
 	readonly tag: string
 	readonly message: string
@@ -52,7 +53,7 @@ function exportTarget(value: unknown): string | undefined {
 }
 
 /** The file an `exports` map resolves a subpath to, or undefined when it resolves none. */
-function resolveExportTarget(exportsMap: unknown, subpath: string): string | undefined {
+export function resolveExportTarget(exportsMap: unknown, subpath: string): string | undefined {
 	if (typeof exportsMap === "string") return subpath === "." ? exportsMap : undefined
 	if (!isRecord(exportsMap)) return undefined
 	return exportTarget(exportsMap[subpath])
@@ -79,9 +80,10 @@ function installTagConflicts(documentation: Documentation): readonly Finding[] {
 			if (seen.tag === argument.tag) continue
 			findings.push({
 				readme: line.readme,
+				line: line.line,
 				packageName: argument.name,
 				tag: argument.tag,
-				message: `${line.readme}:${line.line} names ${argument.name}@${argument.tag}, but line ${seen.line} names ${argument.name}@${seen.tag}`,
+				message: `names ${argument.name}@${argument.tag}, but line ${seen.line} names ${argument.name}@${seen.tag}`,
 			})
 		}
 	}
@@ -93,37 +95,41 @@ function specifierFinding(
 	published: ReadonlyMap<string, PackedPackage>,
 	documented: DocumentedSpecifier,
 ): Finding | undefined {
-	const tag = documentedTag(documentation, documented.packageName)
-	const base = { readme: documented.readme, packageName: documented.packageName, tag }
+	const tag = documentedTag(documentation, documented.packageName, documented.readme)
+	const base = {
+		readme: documented.readme,
+		line: documented.line,
+		packageName: documented.packageName,
+		tag,
+	}
 	const package_ = published.get(`${documented.packageName}@${tag}`)
 	if (package_ === undefined) {
 		return {
 			...base,
-			message: `${documented.packageName}@${tag} was not resolved, so ${documented.subpath} cannot be checked`,
+			message: `${documented.packageName}@${tag} was not resolved, so ${JSON.stringify(documented.subpath)} cannot be checked`,
 		}
 	}
 	const target = resolveExportTarget(package_.exports, documented.subpath)
 	if (target === undefined) {
 		return {
 			...base,
-			message: `${documented.packageName}@${tag} does not export ${documented.subpath}`,
+			message: `${documented.packageName}@${tag} does not export ${JSON.stringify(documented.subpath)}`,
 		}
 	}
 	if (package_.files.includes(target.replace(/^\.\//, ""))) return undefined
 	return {
 		...base,
-		message: `${documented.packageName}@${tag} exports ${documented.subpath} to ${target}, which the packed files do not contain`,
+		message: `${documented.packageName}@${tag} exports ${JSON.stringify(documented.subpath)} to ${target}, which the packed files do not contain`,
 	}
 }
 
 function contractVersionFinding(
 	documentation: Documentation,
 	published: ReadonlyMap<string, PackedPackage>,
+	printed: DocumentedContractVersion,
 ): Finding | undefined {
-	const printed = documentation.contractVersion
-	if (printed === undefined) return undefined
-	const tag = documentedTag(documentation, CORE_PACKAGE)
-	const base = { readme: printed.readme, packageName: CORE_PACKAGE, tag }
+	const tag = documentedTag(documentation, CORE_PACKAGE, printed.readme)
+	const base = { readme: printed.readme, line: printed.line, packageName: CORE_PACKAGE, tag }
 	const package_ = published.get(`${CORE_PACKAGE}@${tag}`)
 	if (package_ === undefined) {
 		return {
@@ -139,7 +145,7 @@ function contractVersionFinding(
 	}
 }
 
-/** Every documented install, subpath and Contract version a tag does not ship, named in a message. */
+/** Every documented install, specifier and Contract version a tag does not ship, named in a message. */
 export function checkDocumentation(
 	documentation: Documentation,
 	packages: readonly PackedPackage[],
@@ -150,12 +156,14 @@ export function checkDocumentation(
 		const finding = specifierFinding(documentation, published, documented)
 		if (finding !== undefined) findings.push(finding)
 	}
-	const versionFinding = contractVersionFinding(documentation, published)
-	if (versionFinding !== undefined) findings.push(versionFinding)
+	for (const printed of documentation.contractVersions) {
+		const finding = contractVersionFinding(documentation, published, printed)
+		if (finding !== undefined) findings.push(finding)
+	}
 	return findings
 }
 
 /** The line the CLI prints for a finding. */
 export function formatFinding(finding: Finding): string {
-	return `${finding.readme}: ${finding.message}`
+	return `${finding.readme}:${finding.line}: ${finding.message}`
 }

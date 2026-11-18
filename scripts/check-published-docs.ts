@@ -21,6 +21,7 @@ import {
 	contractVersionOfModule,
 	formatFinding,
 	type PackedPackage,
+	resolveExportTarget,
 } from "./published-docs-check"
 
 interface LocalPackage {
@@ -110,14 +111,15 @@ function tarballsIn(directory: string): readonly string[] {
 
 function packPublished(name: string, tag: string): string {
 	const destination = temporaryDirectory("published-docs-pack-")
-	const specifier = tag === "latest" ? name : `${name}@${tag}`
+	const packageSpecifier = tag === "latest" ? name : `${name}@${tag}`
 	runCommand(
-		["npm", "pack", specifier, "--pack-destination", destination, "--loglevel=error"],
+		["npm", "pack", packageSpecifier, "--pack-destination", destination, "--loglevel=error"],
 		destination,
 	)
 	const tarballs = tarballsIn(destination)
-	if (tarballs.length !== 1)
-		throw new Error(`npm pack ${specifier} wrote ${tarballs.length} tarballs`)
+	if (tarballs.length !== 1) {
+		throw new Error(`npm pack ${packageSpecifier} wrote ${tarballs.length} tarballs`)
+	}
 	return tarballs[0] as string
 }
 
@@ -145,29 +147,32 @@ function tarballFiles(tarball: string): readonly string[] {
 		.map((entry) => entry.replace(/^package\//, ""))
 }
 
-async function publishedContractVersion(tarball: string): Promise<number | undefined> {
+/** The Contract version the package's entrypoint reports, or undefined when it ships none. */
+async function publishedContractVersion(
+	tarball: string,
+	entrypoint: string | undefined,
+): Promise<number | undefined> {
+	if (entrypoint === undefined) return undefined
+	const file = `package/${entrypoint.replace(/^\.\//, "")}`
 	const directory = temporaryDirectory("published-docs-contract-")
-	runCommand(["tar", "xzf", tarball, "-C", directory, "package/dist/index.mjs"], process.cwd())
-	const module: unknown = await import(
-		pathToFileURL(join(directory, "package/dist/index.mjs")).href
-	)
+	runCommand(["tar", "xzf", tarball, "-C", directory, file], process.cwd())
+	const module: unknown = await import(pathToFileURL(join(directory, file)).href)
 	return contractVersionOfModule(module)
 }
 
 async function packedPackage(tarball: string, tag: string): Promise<PackedPackage> {
 	const manifest = tarballManifest(tarball)
 	const name = manifest["name"]
-	const version = manifest["version"]
-	if (typeof name !== "string" || typeof version !== "string") {
-		throw new Error(`${tarball}: package.json carries no name or version`)
-	}
+	if (typeof name !== "string") throw new Error(`${tarball}: package.json carries no name`)
+	const exportsMap = manifest["exports"]
 	const contractVersion =
-		name === CORE_PACKAGE ? await publishedContractVersion(tarball) : undefined
+		name === CORE_PACKAGE
+			? await publishedContractVersion(tarball, resolveExportTarget(exportsMap, "."))
+			: undefined
 	return {
 		name,
 		tag,
-		version,
-		exports: manifest["exports"],
+		exports: exportsMap,
 		files: tarballFiles(tarball),
 		...(contractVersion === undefined ? {} : { contractVersion }),
 	}
