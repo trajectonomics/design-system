@@ -5,7 +5,7 @@ package exports. The package also ships the Brand Typeface: the Inter, Aleo and 
 files and their `@font-face` stylesheets, as opt-in exports.
 
 ```bash
-bun add @trajectonomics/design-system-assets
+bun add @trajectonomics/design-system-assets@alpha
 ```
 
 No dependencies, no peer dependencies and no build step in your app: every export is a static file,

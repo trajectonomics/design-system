@@ -3,16 +3,19 @@
 @import "@trajectonomics/design-system-theme/themes/dark.css";
 @import "@trajectonomics/design-system-theme/tailwind.css";
 @import "@trajectonomics/design-system-theme/typography.css";
-@import "@trajectonomics/design-system-assets/fonts/inter.css";
+@import "@trajectonomics/design-system-assets/fonts/brand.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* The consumer owns its --font-* assignment: the Brand Typeface stylesheet
-   only declares the @font-face rules, and this stack keeps Thai coverage. */
+   only declares the @font-face rules, and each stack keeps the metric-matched
+   fallback behind its web font and Thai coverage behind everything. */
 :root {
 	--font-sans:
-		"Inter Variable", ui-sans-serif, system-ui, "Segoe UI", "Leelawadee UI", Thonburi,
-		"Noto Sans Thai", sans-serif;
+		"Inter Variable", "Inter Fallback", ui-sans-serif, system-ui, "Segoe UI", "Leelawadee UI",
+		Thonburi, "Noto Sans Thai", sans-serif;
+	--font-display: "Aleo", "Aleo Fallback", Georgia, serif;
+	--font-mono: "Azeret Mono", "Azeret Mono Fallback", ui-monospace, monospace;
 }
 
 [data-theme] {

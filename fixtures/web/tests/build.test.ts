@@ -88,26 +88,66 @@ describe("System Typography Stylesheet import", () => {
 	})
 })
 
-describe("Brand Typeface import", () => {
-	it("declares the Inter Variable @font-face rules with swap display", async () => {
-		const css = await builtCss()
-		const faces = css.match(/@font-face\s*\{[^}]*\}/g) ?? []
+/** The Brand Typeface families the brand stylesheet declares, with their shipped weights. */
+const brandFaces = [
+	{
+		family: "Inter Variable",
+		weights: ["100 900"],
+		files: ["inter-latin-wght", "inter-latin-ext-wght"],
+	},
+	{ family: "Aleo", weights: ["300", "400"], files: ["aleo-latin-300", "aleo-latin-400"] },
+	{ family: "Azeret Mono", weights: ["500"], files: ["azeret-mono-latin-500"] },
+] as const
 
-		expect(faces.length).toBeGreaterThanOrEqual(2)
-		for (const face of faces) {
-			expect(face).toMatch(/font-family:\s*"?Inter Variable"?/)
-			expect(face).toMatch(/font-display:\s*swap/)
-			expect(face).toMatch(/font-weight:\s*100 900/)
-			expect(face).toMatch(/unicode-range:\s*U\+/)
+/** The metric-matched fallback families the brand stylesheet declares. */
+const brandFallbacks = [
+	{ family: "Inter Fallback", local: "Arial" },
+	{ family: "Aleo Fallback", local: "Times New Roman" },
+	{ family: "Azeret Mono Fallback", local: "Courier New" },
+] as const
+
+describe("Brand Typeface import", () => {
+	it("declares a swap-display @font-face rule for every family and weight the package ships", async () => {
+		const css = await builtCss()
+
+		for (const { family, weights, files } of brandFaces) {
+			for (const weight of weights) {
+				const face = new RegExp(
+					`@font-face\\s*\\{[^}]*font-family:\\s*"?${family}"?[^}]*font-weight:\\s*${weight}\\b[^}]*\\}`,
+				).exec(css)?.[0]
+
+				expect({ family, weight, declared: face !== undefined }).toEqual({
+					family,
+					weight,
+					declared: true,
+				})
+				expect(face).toMatch(/font-display:\s*swap/)
+				expect(face).toMatch(/unicode-range:\s*U\+/)
+				expect(files.some((prefix) => face?.includes(prefix))).toBe(true)
+			}
 		}
 	})
 
-	it("emits each woff2 subset and references its hashed filename from the built CSS", async () => {
+	it("declares the three metric-matched fallback families", async () => {
+		const css = await builtCss()
+
+		for (const { family, local } of brandFallbacks) {
+			const face = new RegExp(`@font-face\\s*\\{[^}]*font-family:\\s*"?${family}"?[^}]*\\}`).exec(
+				css,
+			)?.[0]
+
+			expect({ family, declared: face !== undefined }).toEqual({ family, declared: true })
+			expect(face).toMatch(new RegExp(`local\\(\\s*"?${local}"?\\s*\\)`))
+			expect(face).toMatch(/size-adjust:\s*[\d.]+%/)
+		}
+	})
+
+	it("emits each woff2 file and references its hashed filename from the built CSS", async () => {
 		const files = await builtFiles()
 		const css = await builtCss()
-		const woff2 = files.filter((name) => /^inter-latin(-ext)?-wght-.*\.woff2$/.test(name))
+		const woff2 = files.filter((name) => name.endsWith(".woff2"))
 
-		expect(woff2).toHaveLength(2)
+		expect(woff2).toHaveLength(5)
 		for (const name of woff2) {
 			expect(css).toContain(name)
 		}
@@ -119,6 +159,7 @@ describe("Brand Typeface import", () => {
 		const brandSeam = seams.find((value) => /^"?Inter Variable"?/.test(value))
 
 		expect(brandSeam).toBeDefined()
+		expect(brandSeam).toContain('"Inter Fallback"')
 		expect(brandSeam).toContain("Noto Sans Thai")
 		expect(css).toMatch(/font-family:\s*var\(--font-sans\)/)
 	})

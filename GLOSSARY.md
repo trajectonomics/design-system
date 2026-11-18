@@ -49,13 +49,13 @@ the page inverted. It is resolved by the `color.stage` and `color.stage.foregrou
 The stable surface a non-Svelte app may depend on: the `--ds-` custom properties, the `data-theme` selector that scopes them, the Tailwind Theme Stylesheet's mapped names and the `theme` package's CSS exports. A change to it follows the per-surface compatibility rule in ADR 0005.
 
 ### Brand Asset
-A static file that carries the Trajectonomics identity for consumers: the logo mark, the wordmark or a Favicon Set file. Brand Assets are not Design Tokens, and the art for them comes from the owner.
+A static file that carries the Trajectonomics identity for consumers: the logo mark, the tiled mark (the mark on its filled tile), the wordmark or a Favicon Set file. Brand Assets are not Design Tokens, and the art for them comes from the owner.
 
 ### Favicon Set
 The Brand Assets a site needs for its browser and home-screen icons: an SVG favicon, an ICO, an Apple touch icon and 192 and 512 pixel PNGs.
 
 ### Brand Typeface
-The brand font files (Inter woff2, latin and latin-ext subsets) and their `@font-face` stylesheet, shipped by the assets package as opt-in exports. The Brand Typeface is not a Brand Asset and not a Design Token; it is licensed under the SIL Open Font License 1.1 (`INTER-OFL-1.1.txt`), not the artwork's NOTICE. A consumer imports its stylesheet and assigns its own `--font-*` variable; the System Typography Stylesheet stays the zero-payload default.
+The brand font files the assets package ships as opt-in exports: Inter Variable (latin and latin-ext subsets, weights 100–900), Aleo (latin, 300 and 400) and Azeret Mono (latin, 500), as woff2, and the two `@font-face` stylesheets that declare them — `inter.css` for Inter Variable alone, and `brand.css` for every family plus a metric-matched fallback family per brand family. The Brand Typeface is not a Brand Asset and not a Design Token; each family is licensed under the SIL Open Font License 1.1 (`INTER-OFL-1.1.txt`, `ALEO-OFL-1.1.txt` and `AZERET-MONO-OFL-1.1.txt`), not the artwork's NOTICE. A consumer imports one stylesheet and assigns its own `--font-*` variable; the System Typography Stylesheet stays the zero-payload default.
 
 ### Hook
 A reactive helper function, named `use*`, that the Svelte package exports for consumers (for example `useTheme`). A Hook exists only when a concrete component or consumer need requires it. Hooks belong to the Svelte package and never to the pure core.
