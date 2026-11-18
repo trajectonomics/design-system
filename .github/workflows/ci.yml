@@ -30,6 +30,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # The published-docs check compares the branch against its base commit,
+          # so the checkout needs the history that names the package a change touches.
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -41,6 +45,14 @@ jobs:
 
       - name: Pack the packages and verify a consumer app
         run: bun run smoke
+
+      # After the build above: an in-flight package is asserted against its local
+      # build, because its alpha publishes on merge. This is the only step that
+      # reads public npm, so `bun run check` stays offline.
+      - name: Check the documented installs against the published tag
+        run: bun run check:published-docs --base "$BASE_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
 
   # Exercises every package's release path without publishing or tagging: it
   # computes (or reports nothing for) the version, applies it, asserts the packed
