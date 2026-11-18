@@ -39,7 +39,7 @@ describe("the Contrast Pair table", () => {
 	})
 
 	it("lists each Contrast Pair once", () => {
-		const pairs = CONTRAST_PAIRS.map((pair) => `${pair.background} on ${pair.foreground}`)
+		const pairs = CONTRAST_PAIRS.map((pair) => `${pair.foreground} on ${pair.background}`)
 		expect(new Set(pairs).size).toBe(pairs.length)
 	})
 

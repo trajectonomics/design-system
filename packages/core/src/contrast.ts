@@ -12,8 +12,8 @@ export interface ContrastPair {
 export interface ContrastFailure {
 	readonly theme: string
 	readonly pair: ContrastPair
-	readonly background: string
-	readonly foreground: string
+	readonly backgroundValue: string
+	readonly foregroundValue: string
 	readonly ratio: number | null
 }
 
@@ -63,11 +63,13 @@ export function contrastFailures(
 ): readonly ContrastFailure[] {
 	const failures: ContrastFailure[] = []
 	for (const pair of pairs) {
-		const foreground = theme.tokens[pair.foreground] ?? ""
-		const background = theme.tokens[pair.background] ?? ""
-		const ratio = contrastRatio(foreground, background)
+		const foregroundValue = theme.tokens[pair.foreground] ?? ""
+		const backgroundValue = theme.tokens[pair.background] ?? ""
+		const ratio = contrastRatio(foregroundValue, backgroundValue)
 		if (ratio === null || ratio < pair.floor) {
-			failures.push(Object.freeze({ theme: theme.name, pair, foreground, background, ratio }))
+			failures.push(
+				Object.freeze({ theme: theme.name, pair, foregroundValue, backgroundValue, ratio }),
+			)
 		}
 	}
 	return Object.freeze(failures)
@@ -75,10 +77,10 @@ export function contrastFailures(
 
 /** A failure in words: the pair, both values and the measured ratio, rounded only to print. */
 export function describeContrastFailure(failure: ContrastFailure): string {
-	const { theme, pair, foreground, background, ratio } = failure
+	const { theme, pair, foregroundValue, backgroundValue, ratio } = failure
 	const measured =
 		ratio === null
-			? `${foreground} on ${pair.background} ${background} is not a colour value the measure can read`
-			: `${foreground} on ${pair.background} ${background} measures ${ratio.toFixed(2)}:1, under its ${pair.floor}:1 floor`
+			? `${foregroundValue} on ${pair.background} ${backgroundValue} is not a colour value the measure can read`
+			: `${foregroundValue} on ${pair.background} ${backgroundValue} measures ${ratio.toFixed(2)}:1, under its ${pair.floor}:1 floor`
 	return `${theme}: ${pair.foreground} ${measured}`
 }

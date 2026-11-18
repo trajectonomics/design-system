@@ -59,8 +59,27 @@ describe("built-in Themes", () => {
 		const failures = contrastFailures(theme, [
 			{ background: "color.background", foreground: "color.ring", floor: 3 },
 		])
+		expect(failures[0]?.ratio).toBeNull()
 		expect(failures.map(describeContrastFailure)).toEqual([
 			"unreadable: color.ring oklch(0.5 0 0) on color.background #ffffff is not a colour value the measure can read",
+		])
+	})
+
+	it("reports a pair below its floor as data, with both values and the measured ratio", () => {
+		const theme: Theme = {
+			name: "below-floor",
+			contractVersion: 3,
+			tokens: { "color.destructive": "#ff6467", "color.destructive.foreground": "#ffffff" },
+		}
+		const failures = contrastFailures(theme, [
+			{ background: "color.destructive", foreground: "color.destructive.foreground", floor: 4.5 },
+		])
+		expect(failures).toHaveLength(1)
+		expect(failures[0]?.foregroundValue).toBe("#ffffff")
+		expect(failures[0]?.backgroundValue).toBe("#ff6467")
+		expect(failures[0]?.ratio).toBeCloseTo(2.89, 2)
+		expect(failures.map(describeContrastFailure)).toEqual([
+			"below-floor: color.destructive.foreground #ffffff on color.destructive #ff6467 measures 2.89:1, under its 4.5:1 floor",
 		])
 	})
 })
