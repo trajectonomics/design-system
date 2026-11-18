@@ -3,7 +3,7 @@
 Svelte 5 components and Hooks for the Trajectonomics design system, with one compiled stylesheet (`@trajectonomics/design-system-svelte/style.css`). Consumers do not need Tailwind.
 
 ```bash
-bun add @trajectonomics/design-system-svelte @trajectonomics/design-system-theme @trajectonomics/design-system
+bun add @trajectonomics/design-system-svelte@alpha @trajectonomics/design-system-theme@alpha @trajectonomics/design-system@alpha
 ```
 
 `svelte`, `@trajectonomics/design-system` and `@trajectonomics/design-system-theme` are peer dependencies.

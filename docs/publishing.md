@@ -23,9 +23,13 @@ Each published package has its own caller of the reusable `.github/workflows/rel
   Package `version` is never edited by hand.
 - A push to `main` publishes an alpha (dist-tag `alpha`); a manual run from `main` publishes a stable
   version (dist-tag `latest`), creates the `<prefix>X.Y.Z` tag and the GitHub release.
-- A package with only alpha releases has no `latest` dist-tag until its first stable release. That is
-  the state `theme`, `svelte` and `assets` start in; `core` already carries `latest` (`0.1.0-alpha.0`)
-  from its hand publish.
+- npm creates the `latest` dist-tag on a package's first publish, whatever `--tag` the publish
+  passes, and only a stable release moves it. So all four packages carry `latest` today, at the
+  hand-run first publish `0.1.0-alpha.0`, while their `alpha` tags are far ahead: `core`
+  `0.1.0-alpha.4`, `theme` `0.1.0-alpha.5`, `svelte` `0.1.0-alpha.2` and `assets` `0.1.0-alpha.5`.
+  That is why the READMEs install `@alpha`: a bare package name resolves `latest`, which still ships
+  the first alpha. The first stable release moves `latest` to the stable version, and a bare name
+  becomes the install line the documentation wants.
 - Workflow filenames are part of the Trusted Publisher contract (see ADR 0002). Do not rename them.
 
 Before publishing, a dry run (Actions → the package's **Release …** workflow → Run workflow → enable
@@ -47,13 +51,19 @@ documented special case. See ADR 0002.
 
 ## One-time setup
 
+The first publish is done for all four packages: every name exists on npm, and every package has
+published alphas from its release workflow since its hand-run first alpha. Steps 1 to 5 stay here as
+the record of how a new package starts. Steps 6 to 9 are still live: the Trusted Publisher entries
+and the first stable release are the parts the owner still runs. The first publish of `assets` is
+done too, so `trajectonomics/infra#26` no longer gates anything.
+
 1. **Sign in to npm** on the machine you work from: `npm login --auth-type=web`. Open the printed
    URL within five minutes; on a headless machine run it as `BROWSER=none npm login --auth-type=web`.
    Verify with `npm whoami`.
 2. Confirm you belong to the `@trajectonomics` npm org: `npm org ls trajectonomics <your-npm-user>`.
-3. **Check which names exist.** `@trajectonomics/design-system` (`packages/core`) is already on npm
-   (`0.1.0-alpha.0`, published by hand earlier), so it needs no first publish. The other three should
-   answer 404:
+3. **Check which names exist.** Done: all four packages exist on npm, so no name needs a first
+   publish. A new package starts with the same check and must answer 404 before its first publish;
+   these were the three that needed it:
    ```bash
    npm view @trajectonomics/design-system-theme
    npm view @trajectonomics/design-system-svelte
@@ -63,43 +73,27 @@ documented special case. See ADR 0002.
    ```bash
    bun run build
    ```
-5. **First publish of `theme`, then `svelte`** (`core` is already on npm; skip its block). npm cannot
-   attach a Trusted Publisher to a package that does not exist yet, so the maintainer publishes the
-   first version by hand. `npm pkg set` is used instead of `npm version` because `npm version` fails
-   on the `workspace:*` devDependencies. Ask the version script what the pipeline would publish, bump the working tree
-   only (never commit it), publish under the `alpha` tag without provenance (it needs CI), approve
-   the 2FA URL npm prints, then discard the bump.
+5. **First publish.** Done: `core` published `0.1.0-alpha.0` by hand, then `theme`, `svelte` and
+   `assets` published their first alpha the same way, and each has released from its workflow since.
+   npm cannot attach a Trusted Publisher to a package that does not exist yet, so a new package
+   still follows the hand publish. `npm pkg set` is used instead of `npm version` because
+   `npm version` fails on the `workspace:*` devDependencies. Ask the version script what the
+   pipeline would publish, bump the working tree only (never commit it), publish under the `alpha`
+   tag without provenance (it needs CI), approve the 2FA URL npm prints, then discard the bump:
 
-   `theme`:
    ```bash
-   VERSION=$(bun scripts/version.ts --package-folder packages/theme --tag-prefix theme-v --channel alpha)
-   cd packages/theme
+   VERSION=$(bun scripts/version.ts --package-folder packages/<folder> --tag-prefix <prefix> --channel alpha)
+   cd packages/<folder>
    npm pkg set version="$VERSION"
    npm publish --access public --tag alpha --provenance=false
    git checkout package.json
    cd ../..
    ```
 
-   `svelte`:
+   Confirm the package exists and its `alpha` tag points at the first version:
    ```bash
-   VERSION=$(bun scripts/version.ts --package-folder packages/svelte --tag-prefix svelte-v --channel alpha)
-   cd packages/svelte
-   npm pkg set version="$VERSION"
-   npm publish --access public --tag alpha --provenance=false
-   git checkout package.json
-   cd ../..
+   npm view @trajectonomics/<package> dist-tags
    ```
-
-   Confirm each new package exists and its `alpha` tag points at the first version:
-   ```bash
-   npm view @trajectonomics/design-system-theme dist-tags
-   npm view @trajectonomics/design-system-svelte dist-tags
-   ```
-
-   `assets` is not published by an agent: its art is licensed by the owner (see
-   [`packages/assets/NOTICE`](../packages/assets/NOTICE)), so its first publish and Trusted Publisher
-   are `trajectonomics/infra#26`. Until that issue is done, `release-assets.yml` fails loudly without
-   publishing, and no one edits the package `version`.
 6. **Switch each package to trusted publishing.** On npmjs.com open the package, then Settings,
    then Trusted Publisher, and choose GitHub Actions with repository
    `trajectonomics/design-system` and the workflow filename from the table above. Repeat for all

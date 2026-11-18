@@ -143,3 +143,16 @@ above.
   a minor release); breaking for `defineTheme` callers, because the closed role set grew, so it
   ships with Contract version 3 and a `feat!` commit. Release order `core` → `theme` → `svelte`.
   The existing peer ranges stay correct: `^0.1.0-alpha.3` admits the next `0.1.0-alpha.*`.
+
+## Amendment: Brand Typeface families in the assets package
+
+- 2026-11-18: the assets package ships the rest of the Brand Typeface as opt-in `./fonts/*` exports
+  (`trajectonomics/design-system#79`): `./fonts/brand.css`, which declares every family the package
+  carries — Inter Variable, Aleo and Azeret Mono — plus a metric-matched fallback family per brand
+  family, and the woff2 files `./fonts/aleo-latin-300.woff2`, `./fonts/aleo-latin-400.woff2` and
+  `./fonts/azeret-mono-latin-500.woff2`, with their `ALEO-OFL-1.1.txt` and
+  `AZERET-MONO-OFL-1.1.txt` licence texts. `./fonts/inter.css` stays the Inter-only stylesheet. The
+  earlier amendment's rule is unchanged: those subpaths are the assets package's own contract,
+  pinned by its own tests, not part of the Web Consumer Contract, and adding them is additive (a
+  minor release). `typography.css` stays system-only, and consumers keep owning their `--font-*`
+  variable assignment.

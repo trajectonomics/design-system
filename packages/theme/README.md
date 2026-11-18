@@ -3,7 +3,7 @@
 Pure behaviour for the Trajectonomics design system: `defineTheme` with Contract validation, Theme CSS emission, the prebuilt `light` and `dark` Theme CSS, the Tailwind Theme Stylesheet and the System Typography Stylesheet.
 
 ```bash
-bun add @trajectonomics/design-system-theme @trajectonomics/design-system
+bun add @trajectonomics/design-system-theme@alpha @trajectonomics/design-system@alpha
 ```
 
 `@trajectonomics/design-system` is a peer dependency. The package exports `./themes/light.css`, `./themes/dark.css`, `./tailwind.css` and `./typography.css`.

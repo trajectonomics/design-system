@@ -18,7 +18,7 @@ This repository is a private Bun workspace with four published packages and one 
 | [`@trajectonomics/design-system`](./packages/core) | `packages/core` | Pure data: Primitive Tokens, Semantic Tokens, the Semantic Token Contract and the built-in `light` and `dark` Themes. No dependencies. |
 | [`@trajectonomics/design-system-theme`](./packages/theme) | `packages/theme` | Pure behaviour: `defineTheme`, validation, Theme CSS, prebuilt Theme CSS and the Tailwind Theme Stylesheet. |
 | [`@trajectonomics/design-system-svelte`](./packages/svelte) | `packages/svelte` | Svelte 5 components and Hooks, with one compiled stylesheet. Consumers do not need Tailwind. |
-| [`@trajectonomics/design-system-assets`](./packages/assets) | `packages/assets` | Brand Assets (logo mark, tiled mark, wordmark, Favicon Set) and the Brand Typeface (Inter woff2 and its `@font-face` stylesheet), as static files. No dependencies. |
+| [`@trajectonomics/design-system-assets`](./packages/assets) | `packages/assets` | Brand Assets (logo mark, tiled mark, wordmark, Favicon Set) and the Brand Typeface (Inter Variable, Aleo and Azeret Mono woff2 and their `@font-face` stylesheets), as static files. No dependencies. |
 | Storybook (private) | [`apps/storybook`](./apps/storybook) | Component previews with a Theme switcher and the accessibility addon. Never published. |
 
 Dependency direction is `svelte` → `theme` → `core`. `theme` and `svelte` declare their dependencies
@@ -29,14 +29,20 @@ on nothing: it is a leaf of static files.
 
 ```bash
 # Tokens and Themes only
-bun add @trajectonomics/design-system @trajectonomics/design-system-theme
+bun add @trajectonomics/design-system@alpha @trajectonomics/design-system-theme@alpha
 
 # Svelte components and Hooks
-bun add @trajectonomics/design-system-svelte @trajectonomics/design-system-theme @trajectonomics/design-system
+bun add @trajectonomics/design-system-svelte@alpha @trajectonomics/design-system-theme@alpha @trajectonomics/design-system@alpha
 
-# Brand Assets (logo mark, tiled mark, wordmark, Favicon Set) and the Brand Typeface (Inter)
-bun add @trajectonomics/design-system-assets
+# Brand Assets (logo mark, tiled mark, wordmark, Favicon Set) and the Brand Typeface
+# (Inter Variable, Aleo and Azeret Mono)
+bun add @trajectonomics/design-system-assets@alpha
 ```
+
+Every install line names the `alpha` dist-tag, because that is the line the packages publish today:
+`latest` still points at the hand-run first publish, which is missing most of what the surrounding
+text imports. Drop the `@alpha` suffix from a package's install line once its first stable release
+moves `latest` to a version that ships what the documentation names.
 
 A consumer needs `core` and `theme` alongside `svelte` because they are peer dependencies.
 
@@ -51,7 +57,7 @@ import {
 } from "@trajectonomics/design-system"
 
 // The closed, versioned set of Semantic Token names every Theme resolves.
-console.log(semanticTokenContract.version) // 2
+console.log(semanticTokenContract.version) // 3
 
 // Built-in Themes are plain, frozen data.
 console.log(lightTheme.tokens["color.primary"]) // "#171717"
@@ -94,8 +100,8 @@ const css = themeToCss(theme) // [data-theme="brand-ocean"] { --ds-color-primary
 the same CSS. Install the two packages, plus `assets` if the page opts into the Brand Typeface:
 
 ```bash
-bun add @trajectonomics/design-system @trajectonomics/design-system-theme
-bun add @trajectonomics/design-system-assets # only for the Brand Typeface stylesheet below
+bun add @trajectonomics/design-system@alpha @trajectonomics/design-system-theme@alpha
+bun add @trajectonomics/design-system-assets@alpha # only for the Brand Typeface stylesheet below
 ```
 
 ### The stylesheets to import
@@ -111,7 +117,7 @@ builds from exactly these lines:
 @import "@trajectonomics/design-system-theme/themes/dark.css";
 @import "@trajectonomics/design-system-theme/tailwind.css";
 @import "@trajectonomics/design-system-theme/typography.css";
-@import "@trajectonomics/design-system-assets/fonts/inter.css";
+@import "@trajectonomics/design-system-assets/fonts/brand.css";
 ```
 
 `tailwind.css` is a Tailwind v4 `@theme inline` stylesheet, so utilities such as `bg-primary`,
@@ -127,14 +133,30 @@ a page with a no-web-font budget can still import it. Because it selects `[data-
 Tailwind's preflight on `font-family` and `line-height` whatever the import order, as long as the
 Theme attribute sits on `<html>`.
 
-`inter.css` is the Brand Typeface stylesheet from the assets package. It declares only `@font-face`
-rules for `"Inter Variable"` — one per subset (latin and latin-ext), with `font-display: swap`,
-`font-weight: 100 900` and a per-subset `unicode-range` — so it sets no property on any element. You
-assign your own `--font-*` variable, for example
-`--font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif`, and apply it where you want
-the Brand Typeface; keep the Thai-capable system stack behind it so Thai glyphs still fall through.
-A page with a no-web-font budget simply does not import `inter.css`: `typography.css` stays the
-zero-payload default.
+`brand.css` is the Brand Typeface stylesheet from the assets package, and it declares the whole
+face: `@font-face` rules for `"Inter Variable"` (latin and latin-ext, `font-weight: 100 900`),
+`"Aleo"` (300 and 400) and `"Azeret Mono"` (500), each with `font-display: swap` and a
+`unicode-range`, plus a metric-matched fallback family per brand family (`"Inter Fallback"`,
+`"Aleo Fallback"`, `"Azeret Mono Fallback"`) whose `size-adjust` and metric overrides reproduce the
+web font's line box so the first paint does not shift. It sets no property on any element: you
+assign your own `--font-*` variables, for example
+
+```css
+:root {
+  --font-sans: "Inter Variable", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Aleo", "Aleo Fallback", Georgia, serif;
+  --font-mono: "Azeret Mono", "Azeret Mono Fallback", ui-monospace, monospace;
+}
+
+[data-theme] {
+  font-family: var(--font-sans);
+}
+```
+
+and keep the Thai-capable system stack behind the brand family so Thai glyphs still fall through.
+`inter.css` stays for a page that wants the Inter-only stylesheet: it declares `"Inter Variable"`
+alone, with no fallback family. A page with a no-web-font budget simply does not import either
+stylesheet: `typography.css` stays the zero-payload default.
 
 Without Tailwind, import the Theme CSS only and use the custom properties directly. They are `--ds-`
 plus the Semantic Token Role name with dots replaced by dashes, so `color.primary.foreground` is
@@ -215,13 +237,14 @@ first and updated `theme` and `svelte` peer ranges.
 ## Brand Assets
 
 `@trajectonomics/design-system-assets` ships the art a site needs as static files with no
-dependencies: the logo mark, the mark on its tile, the wordmark and the Favicon Set. The art comes
-from the owner, and the package adds no Design Tokens. The same package also ships the Brand Typeface
-as opt-in exports — `./fonts/inter.css` plus the Inter woff2 files — for a site that wants the Brand
-Typeface; see "Web apps without Svelte" above.
+dependencies: the logo mark, the mark on its tile (the tiled mark), the wordmark and the Favicon
+Set. The art comes from the owner, and the package adds no Design Tokens. The same package also
+ships the Brand Typeface as opt-in exports — `./fonts/inter.css`, `./fonts/brand.css` and the Inter
+Variable, Aleo and Azeret Mono woff2 files — for a site that wants the Brand Typeface; see "Web apps
+without Svelte" above.
 
 ```bash
-bun add @trajectonomics/design-system-assets
+bun add @trajectonomics/design-system-assets@alpha
 ```
 
 Import a file and let your bundler resolve the package export to a URL:
@@ -264,8 +287,10 @@ cp node_modules/@trajectonomics/design-system-assets/dist/favicon/* public/
 Brand Assets are not MIT: they carry the owner's [NOTICE](./packages/assets/NOTICE) (all rights
 reserved), unlike the code packages, and they release on their own (`release-assets.yml`) so a logo
 change never republishes `theme`. The Brand Typeface files (`dist/fonts/*`) are the exception: they
-are Inter, licensed under the SIL Open Font License 1.1
-([INTER-OFL-1.1.txt](./packages/assets/INTER-OFL-1.1.txt)).
+are Inter Variable, Aleo and Azeret Mono, licensed under the SIL Open Font License 1.1
+([INTER-OFL-1.1.txt](./packages/assets/INTER-OFL-1.1.txt),
+[ALEO-OFL-1.1.txt](./packages/assets/ALEO-OFL-1.1.txt) and
+[AZERET-MONO-OFL-1.1.txt](./packages/assets/AZERET-MONO-OFL-1.1.txt)).
 
 ## Svelte components and Hooks
 
@@ -328,6 +353,9 @@ bun run test
 bun run build
 bun run format
 
+# Check the documented install lines and imports against the published alpha tag
+bun run check:published-docs
+
 # Preview the components
 cd apps/storybook
 bun run dev
@@ -340,9 +368,10 @@ The consumer smoke test packs `core`, `theme`, `svelte` and `assets`, installs t
 fixture apps, then runs each app's own checks. The Svelte app runs `svelte-check`, a Theme-switch test
 and a production build; the framework-free app builds with Tailwind v4 and asserts the compiled CSS:
 the `--ds-` variables of both Themes, the resolved `bg-primary` utility and the `dark:` variant, the
-System Typography Stylesheet's Thai-capable stack, the Brand Typeface `@font-face` rules and the
-emitted woff2 files they reference with the consumer's `--font-sans` seam, plus a Brand Asset import
-that resolves to an emitted file. It also fails if Svelte is installed, so the
+System Typography Stylesheet's Thai-capable stack, the three Brand Typeface families with their
+metric-matched fallbacks and the five emitted woff2 files they reference with the consumer's
+`--font-sans` seam, plus a Brand Asset import that resolves to an emitted file. It also fails if
+Svelte is installed, so the
 non-Svelte consumer stays provable. CI runs the smoke as its own job.
 
 TypeScript and test runners are split by package: `core`, `theme` and `assets` use TypeScript 7 and
